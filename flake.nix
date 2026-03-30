@@ -110,6 +110,31 @@
             fi
             touch $out
           '';
+
+          haskell-tests = pkgs.runCommand "haskell-tests" {
+            buildInputs = hsShellPkgs;
+            CABAL_CONFIG = "/dev/null";
+          } ''
+            export HOME=$(mktemp -d)
+            cp -r ${self}/src/haskell $HOME/haskell
+            chmod -R u+w $HOME/haskell
+            cd $HOME/haskell
+            cabal --config-file=/dev/null build all 2>&1
+            cabal --config-file=/dev/null test all 2>&1
+            touch $out
+          '';
+
+          lisp-load = pkgs.runCommand "lisp-load" {
+            buildInputs = lispPkgs;
+          } ''
+            export HOME=$(mktemp -d)
+            sbcl --noinform --non-interactive \
+              --eval '(require :asdf)' \
+              --eval "(push (pathname \"${self}/src/lisp/\") asdf:*central-registry*)" \
+              --eval '(asdf:load-system :mwablab)' \
+              --eval '(quit)'
+            touch $out
+          '';
         };
 
         # Apps
