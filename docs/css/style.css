@@ -1,31 +1,35 @@
-/* mwablab documentation — dark default, light toggle */
+/* mwablab documentation — Catppuccin Mocha dark, light toggle */
 
 :root {
-  --bg: #1a1b26;
-  --bg-surface: #222336;
-  --fg: #c0caf5;
-  --fg-dim: #565f89;
-  --accent: #7aa2f7;
-  --accent-dim: #3d59a1;
-  --border: #292e42;
-  --code-bg: #1e1f2e;
-  --code-border: #33354a;
-  --link: #7dcfff;
-  --nav-bg: #16161e;
+  --bg: #1e1e2e;
+  --bg-surface: #313244;
+  --fg: #cdd6f4;
+  --fg-dim: #6c7086;
+  --accent: #89b4fa;
+  --accent-dim: #45475a;
+  --border: #45475a;
+  --code-bg: #181825;
+  --code-border: #313244;
+  --code-accent: #a6e3a1;
+  --link: #f5c2e7;
+  --link-hover: #cba6f7;
+  --nav-bg: #11111b;
 }
 
 [data-theme="light"] {
-  --bg: #fafafa;
-  --bg-surface: #ffffff;
-  --fg: #1a1a1a;
-  --fg-dim: #718096;
-  --accent: #2c5282;
-  --accent-dim: #bee3f8;
-  --border: #e2e8f0;
-  --code-bg: #f1f5f9;
-  --code-border: #e2e8f0;
-  --link: #2b6cb0;
-  --nav-bg: #fff;
+  --bg: #eff1f5;
+  --bg-surface: #e6e9ef;
+  --fg: #4c4f69;
+  --fg-dim: #8c8fa1;
+  --accent: #1e66f5;
+  --accent-dim: #ccd0da;
+  --border: #ccd0da;
+  --code-bg: #dce0e8;
+  --code-border: #ccd0da;
+  --code-accent: #40a02b;
+  --link: #ea76cb;
+  --link-hover: #8839ef;
+  --nav-bg: #e6e9ef;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -39,8 +43,18 @@ body {
   min-height: 100vh;
 }
 
-a { color: var(--link); }
-a:hover { color: var(--accent); }
+/* Links — no underline, color + hover border */
+a {
+  color: var(--link);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+a:hover {
+  color: var(--link-hover);
+  border-bottom-color: var(--link-hover);
+}
 
 /* Theme toggle */
 .theme-toggle {
@@ -53,6 +67,7 @@ a:hover { color: var(--accent); }
   padding: 0.3rem 0.5rem;
   margin-bottom: 1.5rem;
   display: block;
+  transition: color 0.2s, border-color 0.2s;
 }
 
 .theme-toggle:hover { color: var(--fg); border-color: var(--fg-dim); }
@@ -74,9 +89,12 @@ nav .site-title {
   font-weight: 700;
   color: var(--accent);
   text-decoration: none;
+  border-bottom: none;
   display: block;
   margin-bottom: 0.75rem;
 }
+
+nav .site-title:hover { color: var(--link-hover); }
 
 nav ul { list-style: none; }
 nav li { margin: 0.25rem 0; }
@@ -95,9 +113,10 @@ nav a {
   color: var(--fg);
   text-decoration: none;
   font-size: 0.9rem;
+  border-bottom: none;
 }
 
-nav a:hover { color: var(--accent); }
+nav a:hover { color: var(--link); }
 
 /* Main content */
 main {
@@ -123,7 +142,7 @@ code {
   background: var(--code-bg);
   padding: 0.15em 0.35em;
   border-radius: 3px;
-  color: var(--accent);
+  color: var(--code-accent);
 }
 
 pre {
@@ -166,14 +185,14 @@ dd { margin-left: 1.5rem; margin-bottom: 0.5rem; }
 
 /* Blockquotes */
 blockquote {
-  border-left: 3px solid var(--accent-dim);
+  border-left: 3px solid var(--link);
   padding: 0.5rem 1rem;
   margin: 1rem 0;
   background: var(--bg-surface);
   font-size: 0.9rem;
 }
 
-/* MathJax in dark mode */
+/* MathJax */
 mjx-container { color: var(--fg) !important; }
 
 /* Responsive */
