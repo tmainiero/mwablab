@@ -21,24 +21,24 @@ import Cat.Category (Category(..), CategoryData(..))
 -- Opposite category
 --------------------------------------------------------------------------------
 
--- | @Op cat a b@ wraps a morphism @cat b a@ — the reversal of source and target
+-- | @Op cat a b@ wraps a morphism @cat b a@ -- the reversal of source and target
 -- that defines the opposite category.
 --
 -- \(\operatorname{Hom}_{\mathcal{C}^{\mathrm{op}}}(a, b) = \operatorname{Hom}_{\mathcal{C}}(b, a)\)
 --
 -- Stacks Project 0017.
-newtype Op (cat ∷ k → k → Type) (a ∷ k) (b ∷ k) = Op { getOp ∷ cat b a }
+newtype Op (cat :: k -> k -> Type) (a :: k) (b :: k) = Op { getOp :: cat b a }
 
 -- | The opposite category is a category. Identity is preserved;
 -- composition is reversed.
 --
 -- @
 -- id^{op} = id
--- f ∘^{op} g = (g ∘ f)^{op}
+-- compose^{op} f g = (compose g f)^{op}
 -- @
-instance Category cat ⇒ Category (Op cat) where
+instance Category cat => Category (Op cat) where
   id = Op id
-  Op f ∘ Op g = Op (g ∘ f)
+  compose (Op f) (Op g) = Op (compose g f)
 
 --------------------------------------------------------------------------------
 -- Data track
@@ -46,8 +46,8 @@ instance Category cat ⇒ Category (Op cat) where
 
 -- | Construct the opposite of a 'CategoryData' record.
 -- Reverses the direction of composition.
-oppositeData ∷ CategoryData hom → CategoryData (Op hom)
+oppositeData :: CategoryData hom -> CategoryData (Op hom)
 oppositeData (CatData ident comp) = CatData
   { catIdentity = Op ident
-  , catCompose  = \(Op f) (Op g) → Op (comp g f)
+  , catCompose  = \(Op f) (Op g) -> Op (comp g f)
   }

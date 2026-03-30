@@ -1,4 +1,4 @@
--- | Natural transformation — morphism between functors.
+-- | Natural transformation -- morphism between functors.
 --
 -- Mathematical definition (Stacks Project 0015):
 -- Given functors \(F, G : \mathcal{C} \to \mathcal{D}\), a natural transformation
@@ -13,7 +13,6 @@ module Cat.NaturalTransformation
     -- * Vertical composition
   , idNat
   , vertComp
-  , (•)
   ) where
 
 import Prelude hiding (id, (.))
@@ -31,13 +30,13 @@ import Cat.Category (Category(..))
 -- The naturality condition is not enforced by the type system but is a
 -- law that instances must satisfy:
 --
--- @G(h) ∘ component η = component η ∘ F(h)@
+-- @G(h) \`compose\` component eta = component eta \`compose\` F(h)@
 --
 -- for all morphisms @h@ in the source category.
 --
 -- Stacks Project 0015, Definition 3.4.
-newtype NatTrans (cat2 ∷ k2 → k2 → Type) (f ∷ k1 → k2) (g ∷ k1 → k2) = NatTrans
-  { component ∷ ∀ (a ∷ k1). cat2 (f a) (g a)
+newtype NatTrans (cat2 :: k2 -> k2 -> Type) (f :: k1 -> k2) (g :: k1 -> k2) = NatTrans
+  { component :: forall (a :: k1). cat2 (f a) (g a)
     -- ^ The component at object @a@: a morphism \(\eta_a : F(a) \to G(a)\).
   }
 
@@ -49,7 +48,7 @@ newtype NatTrans (cat2 ∷ k2 → k2 → Type) (f ∷ k1 → k2) (g ∷ k1 → k
 -- Each component is the identity morphism: \((\mathrm{id}_F)_a = \mathrm{id}_{F(a)}\).
 --
 -- nLab: identity natural transformation.
-idNat ∷ Category cat2 ⇒ NatTrans cat2 f f
+idNat :: Category cat2 => NatTrans cat2 f f
 idNat = NatTrans id
 
 -- | Vertical composition of natural transformations.
@@ -57,13 +56,5 @@ idNat = NatTrans id
 -- \((\beta \bullet \alpha)_a = \beta_a \circ \alpha_a\).
 --
 -- Stacks Project 0016.
-vertComp ∷ Category cat2 ⇒ NatTrans cat2 g h → NatTrans cat2 f g → NatTrans cat2 f h
-vertComp (NatTrans β) (NatTrans α) = NatTrans (β ∘ α)
-
--- | Vertical composition operator: @β • α = vertComp β α@.
--- Mnemonic: stacking transformations vertically.
-(•) ∷ Category cat2 ⇒ NatTrans cat2 g h → NatTrans cat2 f g → NatTrans cat2 f h
-(•) = vertComp
-{-# INLINE (•) #-}
-
-infixr 8 •
+vertComp :: Category cat2 => NatTrans cat2 g h -> NatTrans cat2 f g -> NatTrans cat2 f h
+vertComp (NatTrans beta) (NatTrans alpha) = NatTrans (compose beta alpha)

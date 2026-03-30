@@ -34,6 +34,9 @@ docs/_cache/
 # OS
 .DS_Store
 
+# Docker
+.docker/
+
 # Agent ephemera
 .claude/comms/
 .claude/agent_memory/*.tmp

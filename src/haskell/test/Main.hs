@@ -7,10 +7,10 @@ import qualified Cat.FunctorSpec
 import qualified Cat.NaturalTransformationSpec
 import qualified Cat.OppositeSpec
 
-main ∷ IO ()
+main :: IO ()
 main = defaultMain tests
 
-tests ∷ TestTree
+tests :: TestTree
 tests = testGroup "mwablab"
   [ Cat.CategorySpec.tests
   , Cat.FunctorSpec.tests
