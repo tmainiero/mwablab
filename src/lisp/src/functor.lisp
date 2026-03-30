@@ -10,7 +10,7 @@
 ;;;;   - F(id_X) = id_{F(X)}                    (preservation of identities)
 ;;;;   - F(g ∘ f) = F(g) ∘ F(f)                 (preservation of composition)
 ;;;;
-;;;; Reference: Stacks Project, Tag 0014.
+;;;; Reference: Stacks Project, Tag 001B.
 
 (defclass functor ()
   ((name
@@ -40,7 +40,7 @@ For f : X → Y in C, F(f) : F(X) → F(Y) in D.
 Must satisfy:
   - F(id_X) = id_{F(X)}
   - F(g ∘ f) = F(g) ∘ F(f)"))
-  (:documentation "A functor F : C → D. Stacks Project, Tag 0014.
+  (:documentation "A functor F : C → D. Stacks Project, Tag 001B.
 
 A functor encodes a structure-preserving map between categories,
 sending objects to objects and morphisms to morphisms while
@@ -53,7 +53,7 @@ respecting identities and composition."))
 
 For F : C → D and X ∈ Ob(C), returns F(X) ∈ Ob(D).
 
-Reference: Stacks Project, Tag 0014."))
+Reference: Stacks Project, Tag 001B."))
 
 (defmethod fobj ((funct functor) object)
   (funcall (functor-obj-map funct) object))
@@ -67,7 +67,7 @@ The functor laws must hold:
   - fmap F (id-morphism X) = id-morphism (fobj F X)
   - fmap F (compose g f)   = compose (fmap F g) (fmap F f)
 
-Reference: Stacks Project, Tag 0014."))
+Reference: Stacks Project, Tag 001B."))
 
 (defmethod fmap ((funct functor) morphism)
   (funcall (functor-mor-map funct) morphism))

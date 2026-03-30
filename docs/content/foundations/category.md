@@ -14,7 +14,7 @@ $$\circ : \Hom_{\Category{C}}(Y, Z) \times \Hom_{\Category{C}}(X, Y) \to \Hom_{\
 
 subject to associativity and identity laws (see [Laws](#laws) below).
 
-Reference: [Stacks Project 0013](https://stacks.math.columbia.edu/tag/0013).
+Reference: [Stacks Project 0014](https://stacks.math.columbia.edu/tag/0014).
 
 ---
 

@@ -1,5 +1,5 @@
 -- Functor: structure-preserving map between categories.
--- Reference: Stacks Project Tag 0014 (Definition 4.2.2)
+-- Reference: Stacks Project Tag 001B
 module Cat.Functor where
 
 open import Level

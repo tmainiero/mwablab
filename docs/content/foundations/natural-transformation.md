@@ -21,7 +21,7 @@ for every morphism $f \colon X \to Y$ in $\Category{C}$,
 
 $$\Functor{G}(f) \circ \NatTrans{\alpha}_X = \NatTrans{\alpha}_Y \circ \Functor{F}(f).$$
 
-Reference: [Stacks Project, Tag 0015](https://stacks.math.columbia.edu/tag/0015).
+Reference: [Stacks Project, Tag 001I](https://stacks.math.columbia.edu/tag/001I).
 
 ## The naturality square
 

@@ -1,5 +1,5 @@
 -- Natural transformation: morphism between functors.
--- Reference: Stacks Project Tag 0015 (Definition 4.2.3)
+-- Reference: Stacks Project Tag 001I
 module Cat.NaturalTransformation where
 
 open import Level

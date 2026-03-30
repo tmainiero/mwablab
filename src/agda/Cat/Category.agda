@@ -1,5 +1,5 @@
 -- Category: the fundamental structure.
--- Reference: Stacks Project Tag 0013 (Definition 4.2.1)
+-- Reference: Stacks Project Tag 0014
 -- Design: follows Hu & Carette (agda-categories) — setoid equality,
 -- three universe levels (o, ℓ, e) per category.
 module Cat.Category where

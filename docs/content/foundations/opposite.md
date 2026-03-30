@@ -18,7 +18,7 @@ $$g \circ^\op f = f \circ g \;\in\; \Hom_{\Category{C}}(Z, X) = \Hom_{\Category{
 The axioms follow immediately from $\Category{C}$: associativity of $\circ^\op$ is associativity
 of $\circ$ with arguments relabelled; left and right identity laws swap roles.
 
-*Reference: Stacks Project Tag 0017.*
+*Reference: Stacks Project Tag 001M.*
 
 ---
 

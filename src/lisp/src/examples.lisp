@@ -6,7 +6,7 @@
 ;;;; and illustrating the categorical DSL. They are not meant to be
 ;;;; mathematically exhaustive — only computationally useful.
 ;;;;
-;;;; Reference: Stacks Project, Tag 0013.
+;;;; Reference: Stacks Project, Tag 0014.
 
 ;;; ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -26,7 +26,7 @@ This is suitable for posets, graphs, and other small combinatorial categories.
 For non-trivial composition (e.g. monoids), supply morphisms with explicit
 composites and use MAKE-INSTANCE 'CATEGORY directly.
 
-Reference: Stacks Project, Tag 0013."
+Reference: Stacks Project, Tag 0014."
   (let* (;; Augment with identity morphisms
          (all-morphisms
            (append
@@ -74,7 +74,7 @@ The discrete category on a set S has:
 Every object is its own identity; there are no non-identity morphisms.
 This is the free category on a set of objects with no morphisms.
 
-Reference: Stacks Project, Tag 0013."
+Reference: Stacks Project, Tag 0014."
   (make-instance 'category
     :name (format nil "Disc(~A)" objects)
     :objects objects
@@ -160,4 +160,4 @@ This is a concrete sandbox for exploring categorical constructions.
 It does not represent all of Set — only the finite fragment needed
 for local exploration.
 
-Reference: Stacks Project, Tag 0013.")
+Reference: Stacks Project, Tag 0014.")

@@ -1,6 +1,6 @@
 -- | Natural transformation -- morphism between functors.
 --
--- Mathematical definition (Stacks Project 0015):
+-- Mathematical definition (Stacks Project 001I):
 -- Given functors \(F, G : \mathcal{C} \to \mathcal{D}\), a natural transformation
 -- \(\eta : F \Rightarrow G\) is a family of morphisms
 -- \(\eta_a : F(a) \to G(a)\) for each object \(a\) in \(\mathcal{C}\),
@@ -34,7 +34,7 @@ import Cat.Category (Category(..))
 --
 -- for all morphisms @h@ in the source category.
 --
--- Stacks Project 0015, Definition 3.4.
+-- Stacks Project 001I.
 newtype NatTrans (cat2 :: k2 -> k2 -> Type) (f :: k1 -> k2) (g :: k1 -> k2) = NatTrans
   { component :: forall (a :: k1). cat2 (f a) (g a)
     -- ^ The component at object @a@: a morphism \(\eta_a : F(a) \to G(a)\).
@@ -55,6 +55,6 @@ idNat = NatTrans id
 -- Given \(\alpha : F \Rightarrow G\) and \(\beta : G \Rightarrow H\),
 -- \((\beta \bullet \alpha)_a = \beta_a \circ \alpha_a\).
 --
--- Stacks Project 0016.
+-- Stacks Project 001I.
 vertComp :: Category cat2 => NatTrans cat2 g h -> NatTrans cat2 f g -> NatTrans cat2 f h
 vertComp (NatTrans beta) (NatTrans alpha) = NatTrans (compose beta alpha)

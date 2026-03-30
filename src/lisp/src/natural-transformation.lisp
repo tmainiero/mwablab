@@ -21,7 +21,7 @@
 ;;;; Vertical composition: given α : F ⟹ G and β : G ⟹ H,
 ;;;; (β ∘ α)_X = β_X ∘ α_X.
 ;;;;
-;;;; Reference: Stacks Project, Tag 0015.
+;;;; Reference: Stacks Project, Tag 001I.
 
 (defclass natural-transformation ()
   ((name
@@ -46,7 +46,7 @@ For X ∈ Ob(C), η_X : F(X) → G(X) is a morphism in the target category D.
 Must satisfy the naturality condition:
   η_Y ∘ F(f) = G(f) ∘ η_X  for all f : X → Y in C."))
   (:documentation "A natural transformation η : F ⟹ G between functors F, G : C → D.
-Stacks Project, Tag 0015.
+Stacks Project, Tag 001I.
 
 A natural transformation is a family of morphisms {η_X}_{X ∈ Ob(C)}
 indexed by objects of C, each living in the target category D,
@@ -59,7 +59,7 @@ satisfying the naturality condition for every morphism in C."))
 
 For η : F ⟹ G and X ∈ Ob(C), returns η_X : F(X) → G(X) in D.
 
-Reference: Stacks Project, Tag 0015."))
+Reference: Stacks Project, Tag 001I."))
 
 (defmethod component-at ((nat-trans natural-transformation) obj)
   (funcall (nat-trans-component nat-trans) obj))
@@ -73,7 +73,7 @@ the vertical composite β ∘ α : F ⟹ H has components
 
 Vertical composition is the composition law in the functor category [C, D].
 
-Reference: Stacks Project, Tag 0015."))
+Reference: Stacks Project, Tag 001I."))
 
 (defmethod vertical-compose ((beta natural-transformation) (alpha natural-transformation))
   (let* ((source-cat (functor-source (nat-trans-source alpha)))
@@ -98,7 +98,7 @@ The identity natural transformation on F : C → D has components
 
 It is the identity morphism on F in the functor category [C, D].
 
-Reference: Stacks Project, Tag 0015."))
+Reference: Stacks Project, Tag 001I."))
 
 (defmethod identity-nat-trans ((funct functor))
   (let ((target-cat (functor-target funct)))

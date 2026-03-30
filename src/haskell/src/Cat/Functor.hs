@@ -1,6 +1,6 @@
 -- | Functor -- structure-preserving map between categories.
 --
--- Mathematical definition (Stacks Project 0014):
+-- Mathematical definition (Stacks Project 001B):
 -- A functor \(F : \mathcal{C} \to \mathcal{D}\) consists of a map on objects
 -- and a map on morphisms preserving identity and composition.
 --
@@ -35,7 +35,7 @@ import Cat.Category (Category(..))
 -- [Identity]    @'cmap' 'id' = 'id'@
 -- [Composition] @'cmap' (g \`compose\` f) = 'cmap' g \`compose\` 'cmap' f@
 --
--- Stacks Project 0014, Definition 3.2.
+-- Stacks Project 001B.
 class (Category cat1, Category cat2)
     => CFunctor (f :: k1 -> k2) (cat1 :: k1 -> k1 -> Type) (cat2 :: k2 -> k2 -> Type)
     | f -> cat1 cat2 where
@@ -50,7 +50,7 @@ class (Category cat1, Category cat2)
 -- | A functor reified as data. Carries the morphism-mapping function
 -- without requiring a typeclass instance.
 --
--- Stacks Project 0014.
+-- Stacks Project 001B.
 newtype FunctorData (hom1 :: Type -> Type -> Type) (hom2 :: Type -> Type -> Type) (f :: Type -> Type)
   = FunctorData
   { fmapData :: forall a b. hom1 a b -> hom2 (f a) (f b)

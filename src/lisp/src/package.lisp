@@ -4,7 +4,7 @@
 Provides diagram specification, mathematical notation via reader macros,
 and REPL-driven exploration of categorical constructions.")
   (:export
-   ;; category.lisp — Category (Stacks Project 0013)
+   ;; category.lisp — Category (Stacks Project 0014)
    #:category
    #:category-name
    #:category-objects
@@ -15,7 +15,7 @@ and REPL-driven exploration of categorical constructions.")
    #:compose-morphisms
    #:hom-set
 
-   ;; functor.lisp — Functor (Stacks Project 0014)
+   ;; functor.lisp — Functor (Stacks Project 001B)
    #:functor
    #:functor-name
    #:functor-source
@@ -25,7 +25,7 @@ and REPL-driven exploration of categorical constructions.")
    #:fobj
    #:fmap
 
-   ;; natural-transformation.lisp — Natural transformation (Stacks Project 0015)
+   ;; natural-transformation.lisp — Natural transformation (Stacks Project 001I)
    #:natural-transformation
    #:nat-trans-name
    #:nat-trans-source

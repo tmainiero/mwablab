@@ -22,7 +22,7 @@ subject to:
 - **Composition preservation.** For all $f : X \to Y$ and $g : Y \to Z$ in $\Category{C}$,
   $$\Functor{F}(g \circ f) = \Functor{F}(g) \circ \Functor{F}(f).$$
 
-Reference: [Stacks Project, Tag 0014](https://stacks.math.columbia.edu/tag/0014).
+Reference: [Stacks Project, Tag 001B](https://stacks.math.columbia.edu/tag/001B).
 
 The **identity functor** $\operatorname{Id}_{\Category{C}} : \Category{C} \to \Category{C}$ fixes all objects and
 morphisms. Given functors $\Functor{F} : \Category{C} \to \Category{D}$ and $\Functor{G} : \Category{D} \to \Category{E}$,

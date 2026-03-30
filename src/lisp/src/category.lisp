@@ -10,7 +10,7 @@
 ;;;;
 ;;;; satisfying unitality and associativity.
 ;;;;
-;;;; Reference: Stacks Project, Tag 0013.
+;;;; Reference: Stacks Project, Tag 0014.
 
 (defclass category ()
   ((name
@@ -38,7 +38,7 @@ Must satisfy: compose(f, id_X) = f and compose(id_Y, f) = f for f : X → Y.")
     :documentation "Function (g f) → g ∘ f, the composite of f followed by g.
 Arguments in diagrammatic order: f : X → Y, g : Y → Z, result : X → Z.
 Must satisfy associativity: compose(h, compose(g, f)) = compose(compose(h, g), f)."))
-  (:documentation "A category C. Stacks Project, Tag 0013.
+  (:documentation "A category C. Stacks Project, Tag 0014.
 
 A category consists of objects, hom-sets, identity morphisms, and a
 composition law satisfying unitality and associativity.
@@ -56,7 +56,7 @@ unique morphism satisfying:
   - f ∘ id_X = f  for all f : X → Y
   - id_X ∘ g = g  for all g : Z → X
 
-Reference: Stacks Project, Tag 0013."))
+Reference: Stacks Project, Tag 0014."))
 
 (defmethod id-morphism ((cat category) obj)
   (funcall (category-identity cat) obj))
@@ -70,7 +70,7 @@ Arguments are in traditional (right-to-left) order: G is applied after F.
 Must satisfy associativity:
   compose(h, compose(g, f)) = compose(compose(h, g), f)
 
-Reference: Stacks Project, Tag 0013."))
+Reference: Stacks Project, Tag 0014."))
 
 (defmethod compose-morphisms ((cat category) g f)
   (funcall (category-compose cat) g f))
@@ -82,7 +82,7 @@ The hom-set Hom_C(X, Y) is the collection of all morphisms f : X → Y
 in the category C. Returns a list of morphisms (for finite categories)
 or a closure-based representation (for infinite categories).
 
-Reference: Stacks Project, Tag 0013."))
+Reference: Stacks Project, Tag 0014."))
 
 (defmethod hom-set ((cat category) x y)
   (funcall (category-hom cat) x y))

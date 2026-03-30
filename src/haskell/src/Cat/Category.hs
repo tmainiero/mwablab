@@ -1,6 +1,6 @@
 -- | Category -- the fundamental notion.
 --
--- Mathematical definition (Stacks Project 0013):
+-- Mathematical definition (Stacks Project 0014):
 -- A category \(\mathcal{C}\) consists of a set of objects \(\operatorname{Ob}(\mathcal{C})\),
 -- for each pair \(x, y \in \operatorname{Ob}(\mathcal{C})\) a set of morphisms
 -- \(\operatorname{Mor}_{\mathcal{C}}(x, y)\), for each object an identity morphism,
@@ -37,7 +37,7 @@ import Data.Kind (Type)
 -- [Right identity] @f \`compose\` 'id' = f@
 -- [Associativity]  @h \`compose\` (g \`compose\` f) = (h \`compose\` g) \`compose\` f@
 --
--- Stacks Project 0013, Definition 3.1.
+-- Stacks Project 0014.
 class Category (cat :: k -> k -> Type) where
   -- | Identity morphism. For each object @a@, there is a morphism
   -- @id : a -> a@ such that @id \`compose\` f = f@ and @g \`compose\` id = g@.
@@ -70,7 +70,7 @@ infixl 1 >>>
 -- but passable as a value. Will serve as the substrate for V-enrichment
 -- in Phase 1b.
 --
--- Stacks Project 0013.
+-- Stacks Project 0014.
 data CategoryData (hom :: Type -> Type -> Type) = CatData
   { catIdentity :: forall a. hom a a
     -- ^ Identity morphism for each object.
