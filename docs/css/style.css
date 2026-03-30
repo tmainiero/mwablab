@@ -1,36 +1,4 @@
-/* mwablab documentation — Catppuccin Mocha dark, light toggle */
-
-:root {
-  --bg: #1e1e2e;
-  --bg-surface: #313244;
-  --fg: #cdd6f4;
-  --fg-dim: #6c7086;
-  --accent: #89b4fa;
-  --accent-dim: #45475a;
-  --border: #45475a;
-  --code-bg: #181825;
-  --code-border: #313244;
-  --code-accent: #a6e3a1;
-  --link: #f5c2e7;
-  --link-hover: #cba6f7;
-  --nav-bg: #11111b;
-}
-
-[data-theme="light"] {
-  --bg: #eff1f5;
-  --bg-surface: #e6e9ef;
-  --fg: #4c4f69;
-  --fg-dim: #8c8fa1;
-  --accent: #1e66f5;
-  --accent-dim: #ccd0da;
-  --border: #ccd0da;
-  --code-bg: #dce0e8;
-  --code-border: #ccd0da;
-  --code-accent: #40a02b;
-  --link: #ea76cb;
-  --link-hover: #8839ef;
-  --nav-bg: #e6e9ef;
-}
+/* mwablab documentation — layout only, colors from themes/*.css */
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 

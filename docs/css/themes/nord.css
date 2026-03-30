@@ -1,0 +1,32 @@
+/* Nord — Polar Night (dark) / Snow Storm (light) */
+:root {
+  --bg: #2e3440;
+  --bg-surface: #3b4252;
+  --fg: #d8dee9;
+  --fg-dim: #4c566a;
+  --accent: #88c0d0;
+  --accent-dim: #3b4252;
+  --border: #3b4252;
+  --code-bg: #272c36;
+  --code-border: #3b4252;
+  --code-accent: #a3be8c;
+  --link: #81a1c1;
+  --link-hover: #88c0d0;
+  --nav-bg: #242933;
+}
+
+[data-theme="light"] {
+  --bg: #eceff4;
+  --bg-surface: #e5e9f0;
+  --fg: #2e3440;
+  --fg-dim: #4c566a;
+  --accent: #5e81ac;
+  --accent-dim: #d8dee9;
+  --border: #d8dee9;
+  --code-bg: #e5e9f0;
+  --code-border: #d8dee9;
+  --code-accent: #a3be8c;
+  --link: #5e81ac;
+  --link-hover: #81a1c1;
+  --nav-bg: #e5e9f0;
+}

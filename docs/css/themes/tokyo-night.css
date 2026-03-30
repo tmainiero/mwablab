@@ -1,0 +1,32 @@
+/* Tokyo Night */
+:root {
+  --bg: #1a1b26;
+  --bg-surface: #222336;
+  --fg: #c0caf5;
+  --fg-dim: #565f89;
+  --accent: #7aa2f7;
+  --accent-dim: #292e42;
+  --border: #292e42;
+  --code-bg: #1e1f2e;
+  --code-border: #33354a;
+  --code-accent: #9ece6a;
+  --link: #7dcfff;
+  --link-hover: #bb9af7;
+  --nav-bg: #16161e;
+}
+
+[data-theme="light"] {
+  --bg: #d5d6db;
+  --bg-surface: #c4c5ca;
+  --fg: #343b58;
+  --fg-dim: #6172b0;
+  --accent: #34548a;
+  --accent-dim: #b4b5ba;
+  --border: #b4b5ba;
+  --code-bg: #c4c5ca;
+  --code-border: #b4b5ba;
+  --code-accent: #485e30;
+  --link: #166775;
+  --link-hover: #5a3e8e;
+  --nav-bg: #c4c5ca;
+}

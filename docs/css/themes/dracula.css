@@ -1,0 +1,32 @@
+/* Dracula */
+:root {
+  --bg: #282a36;
+  --bg-surface: #44475a;
+  --fg: #f8f8f2;
+  --fg-dim: #6272a4;
+  --accent: #bd93f9;
+  --accent-dim: #44475a;
+  --border: #44475a;
+  --code-bg: #21222c;
+  --code-border: #44475a;
+  --code-accent: #50fa7b;
+  --link: #8be9fd;
+  --link-hover: #ff79c6;
+  --nav-bg: #1e1f29;
+}
+
+[data-theme="light"] {
+  --bg: #f8f8f2;
+  --bg-surface: #e6e6e6;
+  --fg: #282a36;
+  --fg-dim: #6272a4;
+  --accent: #7c3aed;
+  --accent-dim: #d4d4d4;
+  --border: #d4d4d4;
+  --code-bg: #e6e6e6;
+  --code-border: #d4d4d4;
+  --code-accent: #1e8a3e;
+  --link: #0891b2;
+  --link-hover: #db2777;
+  --nav-bg: #e6e6e6;
+}
