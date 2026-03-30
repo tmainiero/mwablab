@@ -4,18 +4,18 @@ title: Opposite Category
 
 ## Definition
 
-Let $\caty{C}$ be a category. The **opposite category** $\caty{C}^\op$ has the same
-objects as $\caty{C}$, with hom-sets reversed:
+Let $\Category{C}$ be a category. The **opposite category** $\Category{C}^\op$ has the same
+objects as $\Category{C}$, with hom-sets reversed:
 
-$$\Hom_{\caty{C}^\op}(X, Y) = \Hom_{\caty{C}}(Y, X).$$
+$$\Hom_{\Category{C}^\op}(X, Y) = \Hom_{\Category{C}}(Y, X).$$
 
 Identities are unchanged: $\id^\op_X = \id_X$. Composition reverses direction. Given
-$f \in \Hom_{\caty{C}^\op}(X, Y)$ and $g \in \Hom_{\caty{C}^\op}(Y, Z)$ — that is,
-$f : Y \to X$ and $g : Z \to Y$ in $\caty{C}$ — the opposite composition is
+$f \in \Hom_{\Category{C}^\op}(X, Y)$ and $g \in \Hom_{\Category{C}^\op}(Y, Z)$ — that is,
+$f : Y \to X$ and $g : Z \to Y$ in $\Category{C}$ — the opposite composition is
 
-$$g \circ^\op f = f \circ g \;\in\; \Hom_{\caty{C}}(Z, X) = \Hom_{\caty{C}^\op}(X, Z).$$
+$$g \circ^\op f = f \circ g \;\in\; \Hom_{\Category{C}}(Z, X) = \Hom_{\Category{C}^\op}(X, Z).$$
 
-The axioms follow immediately from $\caty{C}$: associativity of $\circ^\op$ is associativity
+The axioms follow immediately from $\Category{C}$: associativity of $\circ^\op$ is associativity
 of $\circ$ with arguments relabelled; left and right identity laws swap roles.
 
 *Reference: Stacks Project Tag 0017.*
@@ -60,7 +60,7 @@ oppositeData (CatData ident comp) = CatData
 
 `src/agda/Cat/Opposite.agda`
 
-The postfix operator `_op` constructs $\caty{C}^\op$ from any `Category` record.
+The postfix operator `_op` constructs $\Category{C}^\op$ from any `Category` record.
 The key moves are two `flip`s:
 
 ```agda
@@ -107,16 +107,16 @@ order. Objects and identities are shared with the original category.
 
 ---
 
-## Key property: $(\caty{C}^\op)^\op = \caty{C}$
+## Key property: $(\Category{C}^\op)^\op = \Category{C}$
 
 The opposite construction is an involution. Double reversal recovers the original
 hom-sets:
 
-$$\Hom_{(\caty{C}^\op)^\op}(X, Y)
-  = \Hom_{\caty{C}^\op}(Y, X)
-  = \Hom_{\caty{C}}(X, Y),$$
+$$\Hom_{(\Category{C}^\op)^\op}(X, Y)
+  = \Hom_{\Category{C}^\op}(Y, X)
+  = \Hom_{\Category{C}}(X, Y),$$
 
-and composition $f \circ^{\op\op} g = g \circ^\op f = f \circ g$ agrees with $\caty{C}$.
+and composition $f \circ^{\op\op} g = g \circ^\op f = f \circ g$ agrees with $\Category{C}$.
 
 In Haskell this is witnessed by `getOp . getOp`:
 
@@ -133,20 +133,20 @@ both types and terms.
 
 ## Why it matters
 
-**Contravariant functors.** A contravariant functor $\fun{F} : \caty{C} \to \caty{D}$
-reverses morphisms: for $f : X \to Y$ in $\caty{C}$ it produces
-$\fun{F}(f) : \fun{F}(Y) \to \fun{F}(X)$ in $\caty{D}$, with composition satisfying
-$\fun{F}(g \circ f) = \fun{F}(f) \circ \fun{F}(g)$.
-The opposite category absorbs the reversal: a contravariant functor from $\caty{C}$
-to $\caty{D}$ is exactly a covariant functor $\caty{C}^\op \to \caty{D}$.
+**Contravariant functors.** A contravariant functor $\Functor{F} : \Category{C} \to \Category{D}$
+reverses morphisms: for $f : X \to Y$ in $\Category{C}$ it produces
+$\Functor{F}(f) : \Functor{F}(Y) \to \Functor{F}(X)$ in $\Category{D}$, with composition satisfying
+$\Functor{F}(g \circ f) = \Functor{F}(f) \circ \Functor{F}(g)$.
+The opposite category absorbs the reversal: a contravariant functor from $\Category{C}$
+to $\Category{D}$ is exactly a covariant functor $\Category{C}^\op \to \Category{D}$.
 This makes contravariance a first-class citizen without a separate definition.
 
-**Presheaves.** The presheaf category $[\caty{C}^\op, \Set]$ — functors from
-$\caty{C}^\op$ to $\Set$ — is the canonical arena for sheaf theory and
+**Presheaves.** The presheaf category $[\Category{C}^\op, \Set]$ — functors from
+$\Category{C}^\op$ to $\Set$ — is the canonical arena for sheaf theory and
 representability questions. The representable presheaf
-$\Hom_{\caty{C}}(-, Y) : \caty{C}^\op \to \Set$ is the basic example.
+$\Hom_{\Category{C}}(-, Y) : \Category{C}^\op \to \Set$ is the basic example.
 
-**Yoneda.** The Yoneda embedding sends each object $Y \in \caty{C}$ to the
-representable presheaf $\Hom_{\caty{C}}(-, Y)$. It is a fully faithful functor
-$\caty{C} \hookrightarrow [\caty{C}^\op, \Set]$, embedding $\caty{C}$ into its
+**Yoneda.** The Yoneda embedding sends each object $Y \in \Category{C}$ to the
+representable presheaf $\Hom_{\Category{C}}(-, Y)$. It is a fully faithful functor
+$\Category{C} \hookrightarrow [\Category{C}^\op, \Set]$, embedding $\Category{C}$ into its
 own presheaf category. See [Yoneda Lemma](/foundations/yoneda).

@@ -4,13 +4,13 @@ title: Category
 
 ## Definition
 
-A **category** $\caty{C}$ consists of:
+A **category** $\Category{C}$ consists of:
 
-1. A collection $\Ob(\caty{C})$ of **objects**.
-2. For each pair $X, Y \in \Ob(\caty{C})$, a set $\Hom_{\caty{C}}(X, Y)$ of **morphisms** from $X$ to $Y$.
-3. For each object $X$, an **identity morphism** $\id_X \in \Hom_{\caty{C}}(X, X)$.
-4. For each triple $X, Y, Z \in \Ob(\caty{C})$, a **composition map**
-$$\circ : \Hom_{\caty{C}}(Y, Z) \times \Hom_{\caty{C}}(X, Y) \to \Hom_{\caty{C}}(X, Z), \quad (g, f) \mapsto g \circ f$$
+1. A collection $\Ob(\Category{C})$ of **objects**.
+2. For each pair $X, Y \in \Ob(\Category{C})$, a set $\Hom_{\Category{C}}(X, Y)$ of **morphisms** from $X$ to $Y$.
+3. For each object $X$, an **identity morphism** $\id_X \in \Hom_{\Category{C}}(X, X)$.
+4. For each triple $X, Y, Z \in \Ob(\Category{C})$, a **composition map**
+$$\circ : \Hom_{\Category{C}}(Y, Z) \times \Hom_{\Category{C}}(X, Y) \to \Hom_{\Category{C}}(X, Z), \quad (g, f) \mapsto g \circ f$$
 
 subject to associativity and identity laws (see [Laws](#laws) below).
 
@@ -55,7 +55,7 @@ categoryDataFromClass :: Category cat => CategoryData cat
 categoryDataFromClass = CatData id compose
 ```
 
-This is the substrate for V-enrichment (planned Phase 1b): a $\caty{V}$-enriched category replaces `hom a b :: Type` with `hom a b :: Ob(V)`.
+This is the substrate for V-enrichment (planned Phase 1b): a $\Category{V}$-enriched category replaces `hom a b :: Type` with `hom a b :: Ob(V)`.
 
 ---
 
@@ -148,7 +148,7 @@ The GADT constructor `Refl :: Discrete a a` enforces $X = Y$ at the type level: 
 
 ### Kleisli category
 
-For a monad $m$, the Kleisli category $\caty{C}_m$ has the same objects as $\caty{C}$ but morphisms $X \to Y$ are Kleisli arrows $X \to m\,Y$.
+For a monad $m$, the Kleisli category $\Category{C}_m$ has the same objects as $\Category{C}$ but morphisms $X \to Y$ are Kleisli arrows $X \to m\,Y$.
 
 - **Identity**: `pure :: a -> m a`
 - **Composition**: `(g <=< f) x = f x >>= g`

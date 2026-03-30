@@ -6,26 +6,8 @@
   <title>$if(title)$$title$ — $endif$mwablab</title>
   <link rel="stylesheet" href="$root$css/theme.css">
   <link rel="stylesheet" href="$root$css/style.css">
-  <script>
-    MathJax = {
-      tex: {
-        inlineMath: [['\\(', '\\)']],
-        displayMath: [['\\[', '\\]']],
-        macros: {
-          caty: ['{\\mathsf{#1}}', 1],
-          fun: ['{\\mathsf{#1}}', 1],
-          nat: ['{\\mathsf{#1}}', 1],
-          Set: '{\\mathsf{Set}}',
-          Cat: '{\\mathsf{Cat}}',
-          Ab: '{\\mathsf{Ab}}',
-          Ob: '{\\operatorname{Ob}}',
-          Hom: '{\\operatorname{Hom}}',
-          id: '{\\operatorname{id}}',
-          op: '{\\mathrm{op}}'
-        }
-      }
-    };
-  </script>
+  <!-- MathJax macros auto-synced from src/spec/preamble.tex by semtex.py -->
+  <script src="$root$mathjax_config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
 </head>
 <body>

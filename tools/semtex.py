@@ -334,15 +334,71 @@ def cmd_validate(registry_path, project_root='.'):
 # MathJax macro generation
 # ---------------------------------------------------------------------------
 
-# Patterns for extracting macro definitions from preamble.tex
-RE_NEWCOMMAND = re.compile(
-    r'\\newcommand\{\\([^}]+)\}'       # \newcommand{\name}
-    r'(?:\[(\d+)\])?'                   # optional [nargs]
-    r'\{([^}]*(?:\{[^}]*\}[^}]*)*)\}'  # {body} (handles one level of nested braces)
-)
 RE_DECLAREMATHOP = re.compile(
     r'\\DeclareMathOperator\{\\([^}]+)\}\{([^}]+)\}'
 )
+
+# Semantic/non-math macros to skip in MathJax output
+SKIP_MACROS = {
+    'concept', 'depends', 'implements', 'axiom', 'uses',
+    'stacksref', 'nlabref', 'newterm', 'newmath',
+}
+
+
+def _extract_braced(text, pos):
+    """Extract a brace-balanced group starting at text[pos] == '{'.
+    Returns (content, end_pos) where end_pos is after the closing '}'."""
+    if pos >= len(text) or text[pos] != '{':
+        return None, pos
+    depth = 0
+    start = pos + 1
+    i = pos
+    while i < len(text):
+        if text[i] == '{':
+            depth += 1
+        elif text[i] == '}':
+            depth -= 1
+            if depth == 0:
+                return text[start:i], i + 1
+        i += 1
+    return None, pos
+
+
+def _parse_newcommands(content):
+    """Parse \\newcommand definitions with proper brace matching."""
+    results = []
+    i = 0
+    while i < len(content):
+        idx = content.find('\\newcommand', i)
+        if idx == -1:
+            break
+        # Also handle \newcommand*
+        pos = idx + len('\\newcommand')
+        if pos < len(content) and content[pos] == '*':
+            pos += 1
+        # Extract name: \newcommand{\name}
+        name_body, pos = _extract_braced(content, pos)
+        if name_body is None or not name_body.startswith('\\'):
+            i = idx + 1
+            continue
+        name = name_body[1:]  # strip leading backslash
+        # Optional [nargs]
+        nargs = None
+        while pos < len(content) and content[pos] in ' \t\n':
+            pos += 1
+        if pos < len(content) and content[pos] == '[':
+            end_bracket = content.find(']', pos)
+            if end_bracket != -1:
+                nargs = content[pos+1:end_bracket].strip()
+                pos = end_bracket + 1
+        # Extract body
+        while pos < len(content) and content[pos] in ' \t\n':
+            pos += 1
+        body, pos = _extract_braced(content, pos)
+        if body is not None:
+            results.append((name, nargs, body))
+        i = pos if pos > idx else idx + 1
+    return results
 
 
 def cmd_mathjax(preamble_path):
@@ -352,21 +408,15 @@ def cmd_mathjax(preamble_path):
 
     macros = {}
 
-    for m in RE_NEWCOMMAND.finditer(content):
-        name = m.group(1)
-        nargs = m.group(2)
-        body = m.group(3)
-
-        # Skip semantic macros (they're no-ops, not math)
-        if name in ('concept', 'depends', 'implements', 'axiom', 'uses',
-                     'stacksref', 'nlabref', 'newterm'):
-            continue
-        # Skip non-math macros
-        if name in ('newmath',):
+    for name, nargs, body in _parse_newcommands(content):
+        if name in SKIP_MACROS:
             continue
 
-        # Escape for JS
-        body_js = body.replace('\\', '\\\\')
+        # Strip TeX comments (% to end of line) and collapse whitespace
+        body_clean = re.sub(r'%[^\n]*', '', body)
+        body_clean = re.sub(r'\s+', ' ', body_clean).strip()
+        # Escape for JS string
+        body_js = body_clean.replace('\\', '\\\\')
 
         if nargs:
             macros[name] = [body_js, int(nargs)]

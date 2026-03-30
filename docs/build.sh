@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build the mwablab documentation site.
-# Requires: pandoc
+# Requires: pandoc, python3
 # Usage: ./build.sh [theme]
 #   theme: catppuccin (default), nord, gruvbox, dracula, tokyo-night
 # Output: docs/site/
@@ -13,6 +13,7 @@ SITE_DIR="$DOCS_DIR/site"
 CONTENT_DIR="$DOCS_DIR/content"
 TEMPLATE="$DOCS_DIR/templates/default.html"
 THEME_FILE="$DOCS_DIR/css/themes/$THEME.css"
+SEMTEX="$PROJECT_ROOT/tools/semtex.py"
 
 if [ ! -f "$THEME_FILE" ]; then
   echo "Unknown theme: $THEME"
@@ -22,6 +23,16 @@ fi
 
 rm -rf "$SITE_DIR"
 mkdir -p "$SITE_DIR/foundations" "$SITE_DIR/css"
+
+# --- Pre-build: generate registry and MathJax macros ---
+if [ -f "$SEMTEX" ]; then
+  echo "Generating concept registry..."
+  python3 "$SEMTEX" extract "$PROJECT_ROOT/src/spec/foundations/"*.tex 2>/dev/null || true
+  python3 "$SEMTEX" merge "$PROJECT_ROOT/src/spec/" 2>/dev/null || true
+  echo "Syncing MathJax macros from preamble..."
+  python3 "$SEMTEX" mathjax "$PROJECT_ROOT/src/spec/preamble.tex" \
+    > "$SITE_DIR/mathjax_config.js"
+fi
 
 # Copy static assets
 cp "$DOCS_DIR/css/style.css" "$SITE_DIR/css/"
