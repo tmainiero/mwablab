@@ -1,13 +1,31 @@
-/* mwablab documentation */
+/* mwablab documentation — dark default, light toggle */
 
 :root {
+  --bg: #1a1b26;
+  --bg-surface: #222336;
+  --fg: #c0caf5;
+  --fg-dim: #565f89;
+  --accent: #7aa2f7;
+  --accent-dim: #3d59a1;
+  --border: #292e42;
+  --code-bg: #1e1f2e;
+  --code-border: #33354a;
+  --link: #7dcfff;
+  --nav-bg: #16161e;
+}
+
+[data-theme="light"] {
   --bg: #fafafa;
+  --bg-surface: #ffffff;
   --fg: #1a1a1a;
+  --fg-dim: #718096;
   --accent: #2c5282;
+  --accent-dim: #bee3f8;
   --border: #e2e8f0;
   --code-bg: #f1f5f9;
-  --nav-width: 220px;
-  --max-content: 740px;
+  --code-border: #e2e8f0;
+  --link: #2b6cb0;
+  --nav-bg: #fff;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -21,15 +39,33 @@ body {
   min-height: 100vh;
 }
 
+a { color: var(--link); }
+a:hover { color: var(--accent); }
+
+/* Theme toggle */
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--fg-dim);
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 0.3rem 0.5rem;
+  margin-bottom: 1.5rem;
+  display: block;
+}
+
+.theme-toggle:hover { color: var(--fg); border-color: var(--fg-dim); }
+
 /* Navigation */
 nav {
-  width: var(--nav-width);
+  width: 220px;
   min-height: 100vh;
   padding: 2rem 1rem;
   border-right: 1px solid var(--border);
   position: fixed;
   overflow-y: auto;
-  background: #fff;
+  background: var(--nav-bg);
 }
 
 nav .site-title {
@@ -39,11 +75,10 @@ nav .site-title {
   color: var(--accent);
   text-decoration: none;
   display: block;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
 }
 
 nav ul { list-style: none; }
-
 nav li { margin: 0.25rem 0; }
 
 nav li.section-header {
@@ -51,7 +86,7 @@ nav li.section-header {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #718096;
+  color: var(--fg-dim);
   margin-top: 1.25rem;
   margin-bottom: 0.25rem;
 }
@@ -66,9 +101,9 @@ nav a:hover { color: var(--accent); }
 
 /* Main content */
 main {
-  margin-left: var(--nav-width);
+  margin-left: 220px;
   padding: 2.5rem 3rem;
-  max-width: calc(var(--max-content) + 6rem);
+  max-width: calc(740px + 6rem);
   width: 100%;
 }
 
@@ -78,6 +113,9 @@ h3 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
 
 p { margin-bottom: 1rem; }
 
+ul, ol { margin-bottom: 1rem; padding-left: 1.5rem; }
+li { margin-bottom: 0.25rem; }
+
 /* Code */
 code {
   font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
@@ -85,6 +123,7 @@ code {
   background: var(--code-bg);
   padding: 0.15em 0.35em;
   border-radius: 3px;
+  color: var(--accent);
 }
 
 pre {
@@ -93,7 +132,7 @@ pre {
   border-radius: 6px;
   overflow-x: auto;
   margin-bottom: 1.25rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--code-border);
 }
 
 pre code {
@@ -101,10 +140,8 @@ pre code {
   padding: 0;
   font-size: 0.85rem;
   line-height: 1.5;
+  color: var(--fg);
 }
-
-/* Math */
-.MathJax { font-size: 1.05em; }
 
 /* Tables */
 table {
@@ -120,21 +157,24 @@ th, td {
   font-size: 0.9rem;
 }
 
-th { background: var(--code-bg); font-weight: 600; }
+th { background: var(--bg-surface); font-weight: 600; }
 
-/* Definition lists (used for type signatures) */
+/* Definition lists */
 dl { margin-bottom: 1rem; }
-dt { font-weight: 600; font-family: monospace; margin-top: 0.75rem; }
+dt { font-weight: 600; font-family: monospace; margin-top: 0.75rem; color: var(--accent); }
 dd { margin-left: 1.5rem; margin-bottom: 0.5rem; }
 
-/* Blockquotes for references */
+/* Blockquotes */
 blockquote {
-  border-left: 3px solid var(--accent);
+  border-left: 3px solid var(--accent-dim);
   padding: 0.5rem 1rem;
   margin: 1rem 0;
-  background: #f7fafc;
+  background: var(--bg-surface);
   font-size: 0.9rem;
 }
+
+/* MathJax in dark mode */
+mjx-container { color: var(--fg) !important; }
 
 /* Responsive */
 @media (max-width: 768px) {

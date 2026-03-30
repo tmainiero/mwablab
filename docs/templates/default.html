@@ -30,6 +30,7 @@
 <body>
   <nav>
     <a href="$root$index.html" class="site-title">mwablab</a>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">&#9790;</button>
     <ul>
       <li><a href="$root$index.html">Overview</a></li>
       <li><a href="$root$getting-started.html">Getting Started</a></li>
@@ -44,5 +45,26 @@
     $if(title)$<h1>$title$</h1>$endif$
     $body$
   </main>
+  <script>
+    function toggleTheme() {
+      var t = document.documentElement.getAttribute('data-theme');
+      var next = t === 'light' ? null : 'light';
+      if (next) {
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.removeItem('theme');
+      }
+      document.querySelector('.theme-toggle').textContent = next === 'light' ? '\u2600' : '\u263E';
+    }
+    (function() {
+      var saved = localStorage.getItem('theme');
+      if (saved === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.querySelector('.theme-toggle').textContent = '\u2600';
+      }
+    })();
+  </script>
 </body>
 </html>
