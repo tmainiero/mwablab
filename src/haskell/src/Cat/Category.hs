@@ -1,0 +1,84 @@
+-- | Category — the fundamental notion.
+--
+-- Mathematical definition (Stacks Project 0013):
+-- A category \(\mathcal{C}\) consists of a set of objects \(\operatorname{Ob}(\mathcal{C})\),
+-- for each pair \(x, y \in \operatorname{Ob}(\mathcal{C})\) a set of morphisms
+-- \(\operatorname{Mor}_{\mathcal{C}}(x, y)\), for each object an identity morphism,
+-- and composition satisfying associativity and unit laws.
+--
+-- This module provides two encodings:
+--
+-- 1. __Typeclass track__: locally small categories where objects are Haskell types
+--    and hom-sets are Haskell types. Implicitly Set-enriched.
+-- 2. __Data track__: categories reified as records, suitable for parameterization
+--    and V-enrichment (Phase 1b).
+module Cat.Category
+  ( -- * Typeclass track
+    Category(..)
+  , (≫)
+    -- * Data track
+  , CategoryData(..)
+  , categoryDataFromClass
+  ) where
+
+import Prelude hiding (id, (.))
+import Data.Kind (Type)
+
+--------------------------------------------------------------------------------
+-- Typeclass track
+--------------------------------------------------------------------------------
+
+-- | A category where objects are Haskell types of kind @k@ and morphisms
+-- are values of type @cat a b@.
+--
+-- Laws:
+--
+-- [Left identity]  @'id' '∘' f = f@
+-- [Right identity] @f '∘' 'id' = f@
+-- [Associativity]  @h '∘' (g '∘' f) = (h '∘' g) '∘' f@
+--
+-- Stacks Project 0013, Definition 3.1.
+class Category (cat ∷ k → k → Type) where
+  -- | Identity morphism. For each object @a@, there is a morphism
+  -- @id : a → a@ such that @id ∘ f = f@ and @g ∘ id = g@.
+  id  ∷ cat a a
+
+  -- | Composition of morphisms. Given @g : b → c@ and @f : a → b@,
+  -- produces @g ∘ f : a → c@.
+  (∘) ∷ cat b c → cat a b → cat a c
+
+infixr 9 ∘
+
+-- | Diagrammatic (left-to-right) composition.
+-- @f ≫ g = g ∘ f@.
+--
+-- Convenient when reading morphism chains in diagram order:
+-- @f ≫ g ≫ h@ means "first f, then g, then h".
+(≫) ∷ Category cat ⇒ cat a b → cat b c → cat a c
+f ≫ g = g ∘ f
+{-# INLINE (≫) #-}
+
+infixl 1 ≫
+
+--------------------------------------------------------------------------------
+-- Data track
+--------------------------------------------------------------------------------
+
+-- | A category reified as a record. The morphism type @hom@ is a binary type
+-- constructor indexed by source and target types (objects-as-types).
+--
+-- This is the typeclass 'Category' presented as data — identical laws,
+-- but passable as a value. Will serve as the substrate for V-enrichment
+-- in Phase 1b.
+--
+-- Stacks Project 0013.
+data CategoryData (hom ∷ Type → Type → Type) = CatData
+  { catIdentity ∷ ∀ a. hom a a
+    -- ^ Identity morphism for each object.
+  , catCompose  ∷ ∀ a b c. hom b c → hom a b → hom a c
+    -- ^ Composition of morphisms.
+  }
+
+-- | Reify a 'Category' typeclass instance into a 'CategoryData' record.
+categoryDataFromClass ∷ Category cat ⇒ CategoryData cat
+categoryDataFromClass = CatData id (∘)

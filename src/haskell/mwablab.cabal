@@ -1,0 +1,59 @@
+cabal-version:   3.0
+name:            mwablab
+version:         0.1.0.0
+synopsis:        Categorical foundations as code
+license:         BSD-3-Clause
+build-type:      Simple
+
+common shared
+  default-language: GHC2021
+  default-extensions:
+    UnicodeSyntax
+    TypeFamilies
+    GADTs
+    DataKinds
+    RankNTypes
+    ScopedTypeVariables
+    ConstraintKinds
+    MultiParamTypeClasses
+    FunctionalDependencies
+    FlexibleContexts
+    FlexibleInstances
+    DerivingStrategies
+  ghc-options: -Wall -Wcompat
+
+library
+  import:         shared
+  hs-source-dirs: src
+  exposed-modules:
+    Cat.Category
+    Cat.Examples
+    Cat.Functor
+    Cat.NaturalTransformation
+    Cat.Opposite
+
+  build-depends:
+    base >= 4.18 && < 5,
+    containers,
+    mtl
+
+test-suite mwablab-tests
+  import:         shared
+  type:           exitcode-stdio-1.0
+  hs-source-dirs: test
+  main-is:        Main.hs
+  other-modules:
+    Cat.CategorySpec
+    Cat.FunctorSpec
+    Cat.NaturalTransformationSpec
+    Cat.OppositeSpec
+
+  build-depends:
+    base >= 4.18 && < 5,
+    mwablab,
+    tasty,
+    tasty-quickcheck,
+    tasty-hedgehog,
+    tasty-hunit,
+    QuickCheck,
+    hedgehog
