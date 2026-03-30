@@ -41,3 +41,9 @@ docs/_cache/
 # Agent ephemera
 .claude/comms/
 .claude/agent_memory/*.tmp
+*.semtex.json
+registry.json
+src/spec/foundations/*.pdf
+src/spec/foundations/*.aux
+src/spec/foundations/*.log
+src/spec/foundations/*.out

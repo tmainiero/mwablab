@@ -11,21 +11,19 @@
 \colorlet{defblue}{blue!12}
 
 % --- Typing macros -----------------------------------------------------------
-% These add a semantic layer: \caty{C} means "C is a category", etc.
-% Even when formatting is identity, the semantic tag helps readability and
-% makes global style changes trivial.
-\newcommand{\caty}[1]{\mathsf{#1}}       % categories
-\newcommand{\fun}[1]{\mathsf{#1}}        % functors
-\newcommand{\nat}[1]{\mathsf{#1}}        % natural transformations
-\newcommand{\mon}[1]{\mathsf{#1}}        % monoidal categories
-\newcommand{\venr}[1]{\mathsf{#1}}       % enrichment bases
+% CamelCase: the macro name IS the type. \Category{C} means "C is a category."
+\newcommand{\Category}[1]{\mathsf{#1}}       % categories
+\newcommand{\Functor}[1]{\mathsf{#1}}        % functors
+\newcommand{\NatTrans}[1]{\mathsf{#1}}       % natural transformations
+\newcommand{\Monoidal}[1]{\mathsf{#1}}       % monoidal categories
+\newcommand{\Enrichment}[1]{\mathsf{#1}}     % enrichment bases
 
-% Common instances
-\newcommand{\Set}{\caty{Set}}
-\newcommand{\Cat}{\caty{Cat}}
-\newcommand{\Ab}{\caty{Ab}}
-\newcommand{\Top}{\caty{Top}}
-\newcommand{\Grp}{\caty{Grp}}
+% Common instances (derived from type macros)
+\newcommand{\Set}{\Category{Set}}
+\newcommand{\Cat}{\Category{Cat}}
+\newcommand{\Ab}{\Category{Ab}}
+\newcommand{\Top}{\Category{Top}}
+\newcommand{\Grp}{\Category{Grp}}
 
 % --- Operators ---------------------------------------------------------------
 \DeclareMathOperator{\Ob}{Ob}
@@ -33,6 +31,29 @@
 \DeclareMathOperator{\id}{id}
 \DeclareMathOperator{\dom}{dom}
 \DeclareMathOperator{\cod}{cod}
+
+% --- Arrows (auto long/short via mathchoice) ---------------------------------
+% \lto    : ->  in text, --> in display
+% \lTo    : =>  in text, ==> in display
+% \lmapsto: |-> in text, |--> in display
+\newcommand{\lto}{\mathchoice%
+  {\longrightarrow}%   displaystyle
+  {\rightarrow}%       textstyle
+  {\rightarrow}%       scriptstyle
+  {\rightarrow}%       scriptscriptstyle
+}
+\newcommand{\lTo}{\mathchoice%
+  {\Longrightarrow}%
+  {\Rightarrow}%
+  {\Rightarrow}%
+  {\Rightarrow}%
+}
+\newcommand{\lmapsto}{\mathchoice%
+  {\longmapsto}%
+  {\mapsto}%
+  {\mapsto}%
+  {\mapsto}%
+}
 
 % --- New symbol/term highlighting --------------------------------------------
 \newcommand*{\newmath}[1]{%
@@ -43,6 +64,28 @@
      {\colorbox{defblue}{$\scriptstyle #1$}}
      {\colorbox{defblue}{$\scriptscriptstyle #1$}}}}
 \newcommand{\newterm}[1]{\textcolor{blue}{\emph{#1}}}
+
+% --- Semantic preprocessor macros (semtex) -----------------------------------
+% These are transparent to pdflatex. The semtex preprocessor extracts them.
+% \concept{id}{Display Name} — declares a concept defined in this section.
+\newcommand{\concept}[2]{\label{concept:#1}}
+% \depends{concept-id} — this definition depends on concept-id.
+\newcommand{\depends}[1]{}
+% \implements{lang}{module-or-path} — cross-language implementation link.
+\newcommand{\implements}[2]{}
+% \axiom{concept-id}{axiom-name} — names a law/axiom within a concept.
+\newcommand{\axiom}[2]{\label{axiom:#1:#2}}
+% \uses{concept-id} — weak reference (mentions, but does not depend on).
+\newcommand{\uses}[1]{}
+% \stacksref{tag} — Stacks Project reference with link.
+\newcommand{\stacksref}[1]{%
+  \textsc{Stacks Project} Tag
+  \href{https://stacks.math.columbia.edu/tag/#1}{\texttt{#1}}%
+}
+% \nlabref{page} — nLab reference with link.
+\newcommand{\nlabref}[1]{%
+  \href{https://ncatlab.org/nlab/show/#1}{nLab: \textsf{#1}}%
+}
 
 % --- Theorem environments ----------------------------------------------------
 \newtheorem{theorem}{Theorem}[section]
@@ -61,3 +104,8 @@
 \title{mwablab --- Categorical Foundations}
 \author{}
 \date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\end{document}
