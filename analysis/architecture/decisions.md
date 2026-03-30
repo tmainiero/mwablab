@@ -190,7 +190,7 @@ Reference: Grothendieck universes ([nLab](https://ncatlab.org/nlab/show/Grothend
 |------|-----------|---------|------|
 | f ∘ g (classical) / f ≫ g (diagrammatic) | `f ≫ g` (diagrammatic) | `f . g` (classical) / `(>>>) f g` | `(∘ f g)` |
 | F: C → D | `F : Functor C D` | `F :: CFunctor f C D` | `(functor F C D)` |
-| η: F ⟹ G | `η : NaturalTransformation F G` | `η :: NatTrans F G` | `(nat-trans η F G)` |
+| η: F ⟹ G | `η : NaturalTransformation F G` | `eta :: NatTrans cat2 F G` | `(nat-trans η F G)` |
 
 Greek letters encouraged everywhere: η (unit), ε (counit), μ (multiplication), δ (comultiplication).
 Unicode operators enabled project-wide in Haskell via `UnicodeSyntax`.
