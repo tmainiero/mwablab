@@ -3,56 +3,49 @@
 
 \section{The Opposite Category}
 \label{sec:opposite}
-
-% Typing macros
-\providecommand{\caty}[1]{\mathsf{#1}}
-\providecommand{\fun}[1]{\mathsf{#1}}
-\providecommand{\nat}[1]{\mathsf{#1}}
-\providecommand{\newmath}[1]{%
-  {\setlength{\fboxsep}{0pt}%
-   \mathchoice
-     {\colorbox{defblue}{$\displaystyle #1$}}
-     {\colorbox{defblue}{$\textstyle #1$}}
-     {\colorbox{defblue}{$\scriptstyle #1$}}
-     {\colorbox{defblue}{$\scriptscriptstyle #1$}}}}
-\providecommand{\newterm}[1]{\textcolor{blue}{\emph{#1}}}
+\concept{opposite-category}{Opposite Category}
+\depends{category}
+\implements{haskell}{Cat.Opposite}
+\implements{agda}{Cat.Opposite}
+\implements{lisp}{opposite}
 
 \begin{definition}[Opposite category]
   \label{def:opposite-category}
-  Let $\caty{C}$ be a category.
+  Let $\Category{C}$ be a category.
   The \newterm{opposite category} (or \newterm{dual category})
-  $\newmath{\caty{C}^{\mathrm{op}}}$ is defined by the following data:
+  $\newmath{\Category{C}^{\mathrm{op}}}$ is defined by the following data
+  (\stacksref{001M}; \nlabref{opposite+category}):
   \begin{enumerate}
-    \item $\operatorname{Ob}(\caty{C}^{\mathrm{op}}) = \operatorname{Ob}(\caty{C})$.
+    \item $\Ob(\Category{C}^{\mathrm{op}}) = \Ob(\Category{C})$.
     \item For each pair of objects $X, Y$,
       \begin{equation}
         \label{eq:op-hom}
-        \operatorname{Hom}_{\caty{C}^{\mathrm{op}}}(X, Y)
-        = \operatorname{Hom}_{\caty{C}}(Y, X).
+        \Hom_{\Category{C}^{\mathrm{op}}}(X, Y)
+        = \Hom_{\Category{C}}(Y, X).
       \end{equation}
     \item For each object $X$,
-      the identity morphism is $\newmath{\operatorname{id}^{\mathrm{op}}_X} = \operatorname{id}_X$.
+      the identity morphism is $\newmath{\id^{\mathrm{op}}_X} = \id_X$.
     \item For morphisms
-      $f \in \operatorname{Hom}_{\caty{C}^{\mathrm{op}}}(X, Y)$
-      and $g \in \operatorname{Hom}_{\caty{C}^{\mathrm{op}}}(Y, Z)$
-      (i.e.\ $f \colon Y \to X$ and $g \colon Z \to Y$ in $\caty{C}$),
+      $f \in \Hom_{\Category{C}^{\mathrm{op}}}(X, Y)$
+      and $g \in \Hom_{\Category{C}^{\mathrm{op}}}(Y, Z)$
+      (i.e.\ $f \colon Y \to X$ and $g \colon Z \to Y$ in $\Category{C}$),
       the \newterm{opposite composition} is
       \begin{equation}
         \label{eq:op-comp}
-        g \circ^{\mathrm{op}} f = f \circ g \in \operatorname{Hom}_{\caty{C}}(Z, X)
-        = \operatorname{Hom}_{\caty{C}^{\mathrm{op}}}(X, Z).
+        g \circ^{\mathrm{op}} f = f \circ g \in \Hom_{\Category{C}}(Z, X)
+        = \Hom_{\Category{C}^{\mathrm{op}}}(X, Z).
       \end{equation}
   \end{enumerate}
 \end{definition}
 
 \begin{remark}[Opposite category satisfies the axioms]
   \label{rem:opposite-axioms}
-  We verify that $\caty{C}^{\mathrm{op}}$ is indeed a category.
+  We verify that $\Category{C}^{\mathrm{op}}$ is indeed a category.
   \begin{itemize}
     \item \textbf{Associativity.}
       For morphisms $f \colon X \to Y$, $g \colon Y \to Z$, $h \colon Z \to W$
-      in $\caty{C}^{\mathrm{op}}$
-      (i.e.\ $f \colon Y \to X$, $g \colon Z \to Y$, $h \colon W \to Z$ in $\caty{C}$),
+      in $\Category{C}^{\mathrm{op}}$
+      (i.e.\ $f \colon Y \to X$, $g \colon Z \to Y$, $h \colon W \to Z$ in $\Category{C}$),
       \[
         h \circ^{\mathrm{op}} (g \circ^{\mathrm{op}} f)
         = h \circ^{\mathrm{op}} (f \circ g)
@@ -61,66 +54,80 @@
         = (g \circ h) \circ^{\mathrm{op}} f
         = (h \circ^{\mathrm{op}} g) \circ^{\mathrm{op}} f,
       \]
-      using associativity of composition in $\caty{C}$.
+      using associativity of composition in $\Category{C}$.
 
     \item \textbf{Identity.}
-      For $f \colon X \to Y$ in $\caty{C}^{\mathrm{op}}$
-      (i.e.\ $f \colon Y \to X$ in $\caty{C}$),
+      For $f \colon X \to Y$ in $\Category{C}^{\mathrm{op}}$
+      (i.e.\ $f \colon Y \to X$ in $\Category{C}$),
       \[
-        f \circ^{\mathrm{op}} \operatorname{id}^{\mathrm{op}}_X
-        = \operatorname{id}_X \circ f = f
+        f \circ^{\mathrm{op}} \id^{\mathrm{op}}_X
+        = \id_X \circ f = f
         \quad \text{and} \quad
-        \operatorname{id}^{\mathrm{op}}_Y \circ^{\mathrm{op}} f
-        = f \circ \operatorname{id}_Y = f,
+        \id^{\mathrm{op}}_Y \circ^{\mathrm{op}} f
+        = f \circ \id_Y = f,
       \]
-      using the identity laws in $\caty{C}$.
+      using the identity laws in $\Category{C}$.
   \end{itemize}
 \end{remark}
 
 \begin{proposition}
   \label{prop:opposite-involution}
-  For any category $\caty{C}$, there is an equality
-  $(\caty{C}^{\mathrm{op}})^{\mathrm{op}} = \caty{C}$.
+  For any category $\Category{C}$, there is an equality
+  $(\Category{C}^{\mathrm{op}})^{\mathrm{op}} = \Category{C}$.
 \end{proposition}
 
 \begin{proof}
-  The objects and hom-sets of $(\caty{C}^{\mathrm{op}})^{\mathrm{op}}$
+  The objects and hom-sets of $(\Category{C}^{\mathrm{op}})^{\mathrm{op}}$
   are recovered by the double reversal
   \[
-    \operatorname{Hom}_{(\caty{C}^{\mathrm{op}})^{\mathrm{op}}}(X, Y)
-    = \operatorname{Hom}_{\caty{C}^{\mathrm{op}}}(Y, X)
-    = \operatorname{Hom}_{\caty{C}}(X, Y),
+    \Hom_{(\Category{C}^{\mathrm{op}})^{\mathrm{op}}}(X, Y)
+    = \Hom_{\Category{C}^{\mathrm{op}}}(Y, X)
+    = \Hom_{\Category{C}}(X, Y),
   \]
   and composition $f \circ^{\mathrm{op\,op}} g = g \circ^{\mathrm{op}} f = f \circ g$
-  agrees with composition in $\caty{C}$.
+  agrees with composition in $\Category{C}$.
 \end{proof}
+
+\concept{contravariant-functor}{Contravariant Functor}
+\depends{opposite-category}
+\depends{functor}
 
 \begin{definition}[Contravariant functor]
   \label{def:contravariant-functor}
-  A \newterm{contravariant functor} from $\caty{C}$ to $\caty{D}$
+  A \newterm{contravariant functor} from $\Category{C}$ to $\Category{D}$
   is a \newterm{(covariant) functor}
-  $\fun{F} \colon \caty{C}^{\mathrm{op}} \to \caty{D}$.
+  $\Functor{F} \colon \Category{C}^{\mathrm{op}} \lto \Category{D}$.
 
-  Explicitly, $\fun{F}$ assigns to each object $X \in \operatorname{Ob}(\caty{C})$
-  an object $\fun{F}(X) \in \operatorname{Ob}(\caty{D})$,
-  and to each morphism $f \colon X \to Y$ in $\caty{C}$
+  Explicitly, $\Functor{F}$ assigns to each object $X \in \Ob(\Category{C})$
+  an object $\Functor{F}(X) \in \Ob(\Category{D})$,
+  and to each morphism $f \colon X \to Y$ in $\Category{C}$
   a morphism
   \begin{equation}
     \label{eq:contravariant-hom}
-    \fun{F}(f) \colon \fun{F}(Y) \to \fun{F}(X)
+    \begin{aligned}
+      \Functor{F} \colon \Hom_{\Category{C}}(X, Y)
+        &\lto \Hom_{\Category{D}}(\Functor{F}(Y), \Functor{F}(X)) \\
+      f &\lmapsto \Functor{F}(f)
+    \end{aligned}
   \end{equation}
-  in $\caty{D}$,
-  subject to $\fun{F}(\operatorname{id}_X) = \operatorname{id}_{\fun{F}(X)}$
-  and $\fun{F}(g \circ f) = \fun{F}(f) \circ \fun{F}(g)$.
+  in $\Category{D}$,
+  subject to $\Functor{F}(\id_X) = \id_{\Functor{F}(X)}$
+  and $\Functor{F}(g \circ f) = \Functor{F}(f) \circ \Functor{F}(g)$.
 \end{definition}
 
 \begin{remark}
   The representable presheaf functor
-  $\operatorname{Hom}_{\caty{C}}(-, Y) \colon \caty{C}^{\mathrm{op}} \to \Set$
+  \begin{equation}
+    \begin{aligned}
+      \Hom_{\Category{C}}(-, Y) \colon \Category{C}^{\mathrm{op}}
+        &\lto \Set \\
+      X &\lmapsto \Hom_{\Category{C}}(X, Y)
+    \end{aligned}
+  \end{equation}
   is the canonical example of a contravariant functor.
   The collection of all such functors organises into the presheaf category
-  $\newmath{[\caty{C}^{\mathrm{op}}, \Set]}$,
-  into which $\caty{C}$ embeds fully faithfully
+  $\newmath{[\Category{C}^{\mathrm{op}}, \Set]}$,
+  into which $\Category{C}$ embeds fully faithfully
   via the Yoneda embedding.
 \end{remark}
 

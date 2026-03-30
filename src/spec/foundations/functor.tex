@@ -3,111 +3,124 @@
 
 \section{Functors}
 \label{sec:functor}
+\concept{functor}{Functor}
+\depends{category}
+\implements{haskell}{Cat.Functor}
+\implements{agda}{Cat.Functor}
+\implements{lisp}{functor}
 
-% Typing macros
-\providecommand{\caty}[1]{\mathsf{#1}}
-\providecommand{\fun}[1]{\mathsf{#1}}
-\providecommand{\nat}[1]{\mathsf{#1}}
-\providecommand{\newmath}[1]{%
-  {\setlength{\fboxsep}{0pt}%
-   \mathchoice
-     {\colorbox{defblue}{$\displaystyle #1$}}
-     {\colorbox{defblue}{$\textstyle #1$}}
-     {\colorbox{defblue}{$\scriptstyle #1$}}
-     {\colorbox{defblue}{$\scriptscriptstyle #1$}}}}
-\providecommand{\newterm}[1]{\textcolor{blue}{\emph{#1}}}
-
-Let $\caty{C}$ and $\caty{D}$ be categories.
-A \newterm{functor} $\newmath{\fun{F} \colon \caty{C} \to \caty{D}}$ consists of the following data:
+Let $\Category{C}$ and $\Category{D}$ be categories.
+A \newterm{functor} $\newmath{\Functor{F} \colon \Category{C} \lto \Category{D}}$
+consists of the following data
+(\stacksref{0014}; \nlabref{functor}):
 \begin{enumerate}
-  \item A map
-    $\fun{F} \colon \operatorname{Ob}(\caty{C}) \to \operatorname{Ob}(\caty{D})$
-    on objects.
-  \item For each pair of objects $X, Y \in \operatorname{Ob}(\caty{C})$,
+  \item A map on objects
+    \begin{equation}
+      \begin{aligned}
+        \Functor{F} \colon \Ob(\Category{C}) &\lto \Ob(\Category{D}) \\
+        X &\lmapsto \Functor{F}(X).
+      \end{aligned}
+      \label{eq:functor-ob}
+    \end{equation}
+  \item For each pair of objects $X, Y \in \Ob(\Category{C})$,
     a map on hom-sets
     \begin{equation}
+      \begin{aligned}
+        \Functor{F}_{X,Y} \colon
+          \Hom_{\Category{C}}(X, Y)
+          &\lto
+          \Hom_{\Category{D}}(\Functor{F}(X), \Functor{F}(Y)) \\
+        f &\lmapsto \Functor{F}(f).
+      \end{aligned}
       \label{eq:functor-hom}
-      \fun{F}_{X,Y} \colon
-        \operatorname{Hom}_{\caty{C}}(X, Y)
-        \to
-        \operatorname{Hom}_{\caty{D}}(\fun{F}(X), \fun{F}(Y)).
     \end{equation}
 \end{enumerate}
 
 subject to the following axioms:
 \begin{itemize}
   \item \textbf{Preservation of identities.}
-    For each object $X \in \operatorname{Ob}(\caty{C})$,
+    \axiom{functor}{preserve-identity}
+    For each object $X \in \Ob(\Category{C})$,
     \begin{equation}
       \label{eq:functor-id}
-      \fun{F}(\operatorname{id}_X) = \operatorname{id}_{\fun{F}(X)}.
+      \Functor{F}(\id_X) = \id_{\Functor{F}(X)}.
     \end{equation}
 
   \item \textbf{Preservation of composition.}
-    For all morphisms $f \colon X \to Y$ and $g \colon Y \to Z$ in $\caty{C}$,
+    \axiom{functor}{preserve-composition}
+    For all morphisms $f \colon X \to Y$ and $g \colon Y \to Z$ in $\Category{C}$,
     \begin{equation}
       \label{eq:functor-comp}
-      \fun{F}(g \circ f) = \fun{F}(g) \circ \fun{F}(f).
+      \Functor{F}(g \circ f) = \Functor{F}(g) \circ \Functor{F}(f).
     \end{equation}
 \end{itemize}
 
-\noindent
-Reference: \textsc{Stacks Project} Tag \texttt{0014}.
-
 \begin{definition}[Identity functor]
   \label{def:identity-functor}
-  The \newterm{identity functor} on $\caty{C}$ is
-  $\newmath{\operatorname{Id}_{\caty{C}}} \colon \caty{C} \to \caty{C}$,
-  defined by $\operatorname{Id}_{\caty{C}}(X) = X$ on objects
-  and $\operatorname{Id}_{\caty{C}}(f) = f$ on morphisms.
+  \concept{identity-functor}{Identity Functor}
+  \depends{functor}
+  The \newterm{identity functor} on $\Category{C}$ is
+  $\newmath{\Functor{Id}_{\Category{C}}} \colon \Category{C} \lto \Category{C}$,
+  defined by
+  \begin{equation}
+    \begin{aligned}
+      \Functor{Id}_{\Category{C}} \colon \Ob(\Category{C}) &\lto \Ob(\Category{C}) \\
+      X &\lmapsto X,
+    \end{aligned}
+    \label{eq:id-functor-ob}
+  \end{equation}
+  and $\Functor{Id}_{\Category{C}}(f) = f$ on morphisms.
   It satisfies both functor axioms trivially.
 \end{definition}
 
 \begin{definition}[Composition of functors]
   \label{def:functor-composition}
-  Given functors $\fun{F} \colon \caty{C} \to \caty{D}$
-  and $\fun{G} \colon \caty{D} \to \caty{E}$,
+  \concept{functor-composition}{Functor Composition}
+  \depends{functor}
+  Given functors $\Functor{F} \colon \Category{C} \lto \Category{D}$
+  and $\Functor{G} \colon \Category{D} \lto \Category{E}$,
   their \newterm{composite}
-  $\newmath{\fun{G} \circ \fun{F}} \colon \caty{C} \to \caty{E}$
+  $\newmath{\Functor{G} \circ \Functor{F}} \colon \Category{C} \lto \Category{E}$
   is defined by
   \begin{align}
     \label{eq:functor-comp-ob}
-    (\fun{G} \circ \fun{F})(X) &= \fun{G}(\fun{F}(X))
+    (\Functor{G} \circ \Functor{F})(X) &= \Functor{G}(\Functor{F}(X))
       \quad \text{on objects,} \\
     \label{eq:functor-comp-mor}
-    (\fun{G} \circ \fun{F})(f) &= \fun{G}(\fun{F}(f))
+    (\Functor{G} \circ \Functor{F})(f) &= \Functor{G}(\Functor{F}(f))
       \quad \text{on morphisms.}
   \end{align}
 \end{definition}
 
 \begin{proposition}
   \label{prop:functor-comp-is-functor}
-  The composite $\fun{G} \circ \fun{F}$ as defined above is a functor.
+  The composite $\Functor{G} \circ \Functor{F}$ as defined above is a functor.
 \end{proposition}
 
 \begin{proof}
   Preservation of identities:
   \[
-    (\fun{G} \circ \fun{F})(\operatorname{id}_X)
-    = \fun{G}(\fun{F}(\operatorname{id}_X))
-    = \fun{G}(\operatorname{id}_{\fun{F}(X)})
-    = \operatorname{id}_{\fun{G}(\fun{F}(X))}
-    = \operatorname{id}_{(\fun{G} \circ \fun{F})(X)}.
+    (\Functor{G} \circ \Functor{F})(\id_X)
+    = \Functor{G}(\Functor{F}(\id_X))
+    = \Functor{G}(\id_{\Functor{F}(X)})
+    = \id_{\Functor{G}(\Functor{F}(X))}
+    = \id_{(\Functor{G} \circ \Functor{F})(X)}.
   \]
   Preservation of composition: for $f \colon X \to Y$ and $g \colon Y \to Z$,
   \[
-    (\fun{G} \circ \fun{F})(g \circ f)
-    = \fun{G}(\fun{F}(g \circ f))
-    = \fun{G}(\fun{F}(g) \circ \fun{F}(f))
-    = \fun{G}(\fun{F}(g)) \circ \fun{G}(\fun{F}(f))
-    = (\fun{G} \circ \fun{F})(g) \circ (\fun{G} \circ \fun{F})(f). \qedhere
+    (\Functor{G} \circ \Functor{F})(g \circ f)
+    = \Functor{G}(\Functor{F}(g \circ f))
+    = \Functor{G}(\Functor{F}(g) \circ \Functor{F}(f))
+    = \Functor{G}(\Functor{F}(g)) \circ \Functor{G}(\Functor{F}(f))
+    = (\Functor{G} \circ \Functor{F})(g) \circ (\Functor{G} \circ \Functor{F})(f). \qedhere
   \]
 \end{proof}
 
 \begin{remark}
   Functor composition is associative,
-  and $\operatorname{Id}_{\caty{C}}$ is a two-sided unit.
-  Consequently, small categories and functors form a category $\newmath{\caty{Cat}}$.
+  and $\Functor{Id}_{\Category{C}}$ is a two-sided unit.
+  Consequently, small categories and functors form a category
+  $\newmath{\Category{Cat}}$.
 \end{remark}
 
 \end{document}

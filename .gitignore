@@ -47,3 +47,4 @@ src/spec/foundations/*.pdf
 src/spec/foundations/*.aux
 src/spec/foundations/*.log
 src/spec/foundations/*.out
+src/spec/*.log
