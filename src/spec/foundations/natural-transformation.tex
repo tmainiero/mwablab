@@ -1,0 +1,134 @@
+\documentclass[../preamble]{subfiles}
+\begin{document}
+
+\section{Natural Transformations}
+\label{sec:natural-transformation}
+
+% Typing macros
+\providecommand{\caty}[1]{\mathsf{#1}}
+\providecommand{\fun}[1]{\mathsf{#1}}
+\providecommand{\nat}[1]{\mathsf{#1}}
+\providecommand{\newmath}[1]{%
+  {\setlength{\fboxsep}{0pt}%
+   \mathchoice
+     {\colorbox{defblue}{$\displaystyle #1$}}
+     {\colorbox{defblue}{$\textstyle #1$}}
+     {\colorbox{defblue}{$\scriptstyle #1$}}
+     {\colorbox{defblue}{$\scriptscriptstyle #1$}}}}
+\providecommand{\newterm}[1]{\textcolor{blue}{\emph{#1}}}
+
+Let $\caty{C}$ and $\caty{D}$ be categories,
+and let $\fun{F}, \fun{G} \colon \caty{C} \to \caty{D}$ be functors.
+A \newterm{natural transformation}
+$\newmath{\nat{\alpha} \colon \fun{F} \Rightarrow \fun{G}}$
+consists of the following data:
+\begin{enumerate}
+  \item For each object $X \in \operatorname{Ob}(\caty{C})$,
+    a morphism $\newmath{\nat{\alpha}_X} \colon \fun{F}(X) \to \fun{G}(X)$
+    in $\caty{D}$,
+    called the \newterm{component} of $\nat{\alpha}$ at $X$.
+\end{enumerate}
+
+subject to the \newterm{naturality condition}:
+for every morphism $f \colon X \to Y$ in $\caty{C}$,
+\begin{equation}
+  \label{eq:naturality}
+  \fun{G}(f) \circ \nat{\alpha}_X = \nat{\alpha}_Y \circ \fun{F}(f).
+\end{equation}
+
+This is expressed by the commutativity of the \newterm{naturality square}:
+\begin{equation}
+  \label{eq:naturality-square}
+  \begin{tikzcd}
+    \fun{F}(X) \arrow[r, "\nat{\alpha}_X"] \arrow[d, "\fun{F}(f)"']
+      & \fun{G}(X) \arrow[d, "\fun{G}(f)"] \\
+    \fun{F}(Y) \arrow[r, "\nat{\alpha}_Y"']
+      & \fun{G}(Y)
+  \end{tikzcd}
+\end{equation}
+
+\noindent
+Reference: \textsc{Stacks Project} Tag \texttt{0015}.
+
+\begin{definition}[Identity natural transformation]
+  \label{def:id-nat-trans}
+  The \newterm{identity natural transformation}
+  $\newmath{\operatorname{id}_{\fun{F}}} \colon \fun{F} \Rightarrow \fun{F}$
+  has components $(\operatorname{id}_{\fun{F}})_X = \operatorname{id}_{\fun{F}(X)}$
+  for each $X \in \operatorname{Ob}(\caty{C})$.
+  Naturality holds since both composites in~\eqref{eq:naturality-square}
+  reduce to $\fun{F}(f)$.
+\end{definition}
+
+\begin{definition}[Vertical composition]
+  \label{def:vertical-composition}
+  Given natural transformations
+  $\nat{\alpha} \colon \fun{F} \Rightarrow \fun{G}$
+  and
+  $\nat{\beta} \colon \fun{G} \Rightarrow \fun{H}$,
+  their \newterm{vertical composite}
+  $\newmath{\nat{\beta} \circ \nat{\alpha}} \colon \fun{F} \Rightarrow \fun{H}$
+  has components
+  \begin{equation}
+    \label{eq:vertical-comp}
+    (\nat{\beta} \circ \nat{\alpha})_X = \nat{\beta}_X \circ \nat{\alpha}_X
+  \end{equation}
+  for each $X \in \operatorname{Ob}(\caty{C})$.
+\end{definition}
+
+\begin{proposition}
+  \label{prop:vertical-comp-nat}
+  The vertical composite $\nat{\beta} \circ \nat{\alpha}$
+  as defined in~\eqref{eq:vertical-comp} is a natural transformation
+  $\fun{F} \Rightarrow \fun{H}$.
+\end{proposition}
+
+\begin{proof}
+  For any morphism $f \colon X \to Y$ in $\caty{C}$,
+  \[
+    \fun{H}(f) \circ (\nat{\beta} \circ \nat{\alpha})_X
+    = \fun{H}(f) \circ \nat{\beta}_X \circ \nat{\alpha}_X
+    = \nat{\beta}_Y \circ \fun{G}(f) \circ \nat{\alpha}_X
+    = \nat{\beta}_Y \circ \nat{\alpha}_Y \circ \fun{F}(f)
+    = (\nat{\beta} \circ \nat{\alpha})_Y \circ \fun{F}(f),
+  \]
+  where the second and third equalities use naturality of $\nat{\beta}$
+  and $\nat{\alpha}$ respectively.
+\end{proof}
+
+\begin{definition}[Horizontal composition / Godement product]
+  \label{def:horizontal-composition}
+  Given categories $\caty{C}$, $\caty{D}$, $\caty{E}$,
+  functors $\fun{F}, \fun{F}' \colon \caty{C} \to \caty{D}$
+  and $\fun{G}, \fun{G}' \colon \caty{D} \to \caty{E}$,
+  and natural transformations
+  $\nat{\alpha} \colon \fun{F} \Rightarrow \fun{F}'$
+  and $\nat{\beta} \colon \fun{G} \Rightarrow \fun{G}'$,
+  the \newterm{horizontal composite} (or \newterm{Godement product})
+  $\newmath{\nat{\beta} \star \nat{\alpha}}
+    \colon \fun{G} \circ \fun{F} \Rightarrow \fun{G}' \circ \fun{F}'$
+  has components
+  \begin{equation}
+    \label{eq:horizontal-comp}
+    (\nat{\beta} \star \nat{\alpha})_X
+    = \nat{\beta}_{\fun{F}'(X)} \circ \fun{G}(\nat{\alpha}_X)
+    = \fun{G}'(\nat{\alpha}_X) \circ \nat{\beta}_{\fun{F}(X)},
+  \end{equation}
+  for each $X \in \operatorname{Ob}(\caty{C})$.
+  The two expressions in~\eqref{eq:horizontal-comp} are equal
+  by naturality of $\nat{\beta}$ applied to $\nat{\alpha}_X$.
+\end{definition}
+
+\begin{remark}
+  Vertical composition is associative and admits $\operatorname{id}_{\fun{F}}$
+  as a two-sided unit.
+  Together with the interchange law
+  relating vertical and horizontal composition,
+  these data make functors and natural transformations
+  between two fixed categories into a category
+  $\newmath{[\caty{C}, \caty{D}]}$
+  (the \newterm{functor category}),
+  and all small categories into a 2-category $\caty{Cat}$.
+\end{remark}
+
+\end{document}

@@ -1,0 +1,63 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{tikz-cd}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{subfiles}
+
+% --- Colours -----------------------------------------------------------------
+\colorlet{defblue}{blue!12}
+
+% --- Typing macros -----------------------------------------------------------
+% These add a semantic layer: \caty{C} means "C is a category", etc.
+% Even when formatting is identity, the semantic tag helps readability and
+% makes global style changes trivial.
+\newcommand{\caty}[1]{\mathsf{#1}}       % categories
+\newcommand{\fun}[1]{\mathsf{#1}}        % functors
+\newcommand{\nat}[1]{\mathsf{#1}}        % natural transformations
+\newcommand{\mon}[1]{\mathsf{#1}}        % monoidal categories
+\newcommand{\venr}[1]{\mathsf{#1}}       % enrichment bases
+
+% Common instances
+\newcommand{\Set}{\caty{Set}}
+\newcommand{\Cat}{\caty{Cat}}
+\newcommand{\Ab}{\caty{Ab}}
+\newcommand{\Top}{\caty{Top}}
+\newcommand{\Grp}{\caty{Grp}}
+
+% --- Operators ---------------------------------------------------------------
+\DeclareMathOperator{\Ob}{Ob}
+\DeclareMathOperator{\Hom}{Hom}
+\DeclareMathOperator{\id}{id}
+\DeclareMathOperator{\dom}{dom}
+\DeclareMathOperator{\cod}{cod}
+
+% --- New symbol/term highlighting --------------------------------------------
+\newcommand*{\newmath}[1]{%
+  {\setlength{\fboxsep}{0pt}%
+   \mathchoice
+     {\colorbox{defblue}{$\displaystyle #1$}}
+     {\colorbox{defblue}{$\textstyle #1$}}
+     {\colorbox{defblue}{$\scriptstyle #1$}}
+     {\colorbox{defblue}{$\scriptscriptstyle #1$}}}}
+\newcommand{\newterm}[1]{\textcolor{blue}{\emph{#1}}}
+
+% --- Theorem environments ----------------------------------------------------
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% --- Section numbering for equations -----------------------------------------
+\numberwithin{equation}{section}
+
+\title{mwablab --- Categorical Foundations}
+\author{}
+\date{}

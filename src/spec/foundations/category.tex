@@ -1,0 +1,56 @@
+\documentclass[../preamble]{subfiles}
+\begin{document}
+
+\section{Categories}
+\label{sec:category}
+
+% Typing macros
+\providecommand{\caty}[1]{\mathsf{#1}}
+\providecommand{\fun}[1]{\mathsf{#1}}
+\providecommand{\newmath}[1]{%
+  {\setlength{\fboxsep}{0pt}%
+   \mathchoice
+     {\colorbox{defblue}{$\displaystyle #1$}}
+     {\colorbox{defblue}{$\textstyle #1$}}
+     {\colorbox{defblue}{$\scriptstyle #1$}}
+     {\colorbox{defblue}{$\scriptscriptstyle #1$}}}}
+\providecommand{\newterm}[1]{\textcolor{blue}{\emph{#1}}}
+
+A \newterm{category} $\newmath{\caty{C}}$ consists of the following data:
+\begin{enumerate}
+  \item A collection $\operatorname{Ob}(\caty{C})$ of \newterm{objects}.
+  \item For each pair of objects $X, Y \in \operatorname{Ob}(\caty{C})$,
+    a set $\newmath{\operatorname{Hom}_{\caty{C}}(X, Y)}$ of \newterm{morphisms} from $X$ to $Y$.
+  \item For each object $X$,
+    an \newterm{identity morphism} $\newmath{\operatorname{id}_X} \in \operatorname{Hom}_{\caty{C}}(X, X)$.
+  \item For each triple of objects $X, Y, Z$,
+    a \newterm{composition map}
+    \begin{equation}
+      \begin{aligned}
+        \circ \colon \operatorname{Hom}_{\caty{C}}(Y, Z) \times \operatorname{Hom}_{\caty{C}}(X, Y) &\to \operatorname{Hom}_{\caty{C}}(X, Z) \\
+        (g, f) &\mapsto g \circ f
+      \end{aligned}
+    \end{equation}
+\end{enumerate}
+
+subject to the following axioms:
+\begin{itemize}
+  \item \textbf{Associativity.}
+    For all morphisms $f \colon X \to Y$, $g \colon Y \to Z$, $h \colon Z \to W$,
+    \begin{equation}
+      \label{eq:cat-assoc}
+      h \circ (g \circ f) = (h \circ g) \circ f.
+    \end{equation}
+
+  \item \textbf{Identity.}
+    For all morphisms $f \colon X \to Y$,
+    \begin{equation}
+      \label{eq:cat-id}
+      f \circ \operatorname{id}_X = f = \operatorname{id}_Y \circ f.
+    \end{equation}
+\end{itemize}
+
+\noindent
+Reference: \textsc{Stacks Project} Tag \texttt{0013}.
+
+\end{document}
