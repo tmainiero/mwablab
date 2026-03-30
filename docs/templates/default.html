@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>$if(title)$$title$ — $endif$mwablab</title>
+  <link rel="stylesheet" href="$root$css/style.css">
+  <script>
+    MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']],
+        macros: {
+          caty: ['{\\mathsf{#1}}', 1],
+          fun: ['{\\mathsf{#1}}', 1],
+          nat: ['{\\mathsf{#1}}', 1],
+          Set: '{\\mathsf{Set}}',
+          Cat: '{\\mathsf{Cat}}',
+          Ab: '{\\mathsf{Ab}}',
+          Ob: '{\\operatorname{Ob}}',
+          Hom: '{\\operatorname{Hom}}',
+          id: '{\\operatorname{id}}',
+          op: '{\\mathrm{op}}'
+        }
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+</head>
+<body>
+  <nav>
+    <a href="$root$index.html" class="site-title">mwablab</a>
+    <ul>
+      <li><a href="$root$index.html">Overview</a></li>
+      <li><a href="$root$getting-started.html">Getting Started</a></li>
+      <li class="section-header">Foundations</li>
+      <li><a href="$root$foundations/category.html">Category</a></li>
+      <li><a href="$root$foundations/functor.html">Functor</a></li>
+      <li><a href="$root$foundations/natural-transformation.html">Natural Transformation</a></li>
+      <li><a href="$root$foundations/opposite.html">Opposite Category</a></li>
+    </ul>
+  </nav>
+  <main>
+    $if(title)$<h1>$title$</h1>$endif$
+    $body$
+  </main>
+</body>
+</html>

@@ -124,6 +124,18 @@
             touch $out
           '';
 
+          docs-build = pkgs.runCommand "docs-build" {
+            buildInputs = [ pkgs.pandoc ];
+          } ''
+            cp -r ${self}/docs $TMPDIR/docs
+            chmod -R u+w $TMPDIR/docs
+            cd $TMPDIR/docs
+            if [ -f build.sh ] && ls content/*.md 1>/dev/null 2>&1; then
+              bash build.sh || exit 1
+            fi
+            touch $out
+          '';
+
           lisp-load = pkgs.runCommand "lisp-load" {
             buildInputs = lispPkgs;
           } ''
