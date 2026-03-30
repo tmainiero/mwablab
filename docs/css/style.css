@@ -1,0 +1,143 @@
+/* mwablab documentation */
+
+:root {
+  --bg: #fafafa;
+  --fg: #1a1a1a;
+  --accent: #2c5282;
+  --border: #e2e8f0;
+  --code-bg: #f1f5f9;
+  --nav-width: 220px;
+  --max-content: 740px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Charter', 'Georgia', serif;
+  color: var(--fg);
+  background: var(--bg);
+  line-height: 1.6;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Navigation */
+nav {
+  width: var(--nav-width);
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  border-right: 1px solid var(--border);
+  position: fixed;
+  overflow-y: auto;
+  background: #fff;
+}
+
+nav .site-title {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+  display: block;
+  margin-bottom: 1.5rem;
+}
+
+nav ul { list-style: none; }
+
+nav li { margin: 0.25rem 0; }
+
+nav li.section-header {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #718096;
+  margin-top: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+nav a {
+  color: var(--fg);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+nav a:hover { color: var(--accent); }
+
+/* Main content */
+main {
+  margin-left: var(--nav-width);
+  padding: 2.5rem 3rem;
+  max-width: calc(var(--max-content) + 6rem);
+  width: 100%;
+}
+
+h1 { font-size: 1.8rem; margin-bottom: 1.5rem; color: var(--accent); }
+h2 { font-size: 1.35rem; margin: 2rem 0 0.75rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; }
+h3 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
+
+p { margin-bottom: 1rem; }
+
+/* Code */
+code {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.85em;
+  background: var(--code-bg);
+  padding: 0.15em 0.35em;
+  border-radius: 3px;
+}
+
+pre {
+  background: var(--code-bg);
+  padding: 1rem 1.25rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--border);
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* Math */
+.MathJax { font-size: 1.05em; }
+
+/* Tables */
+table {
+  border-collapse: collapse;
+  margin-bottom: 1.25rem;
+  width: 100%;
+}
+
+th, td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+th { background: var(--code-bg); font-weight: 600; }
+
+/* Definition lists (used for type signatures) */
+dl { margin-bottom: 1rem; }
+dt { font-weight: 600; font-family: monospace; margin-top: 0.75rem; }
+dd { margin-left: 1.5rem; margin-bottom: 0.5rem; }
+
+/* Blockquotes for references */
+blockquote {
+  border-left: 3px solid var(--accent);
+  padding: 0.5rem 1rem;
+  margin: 1rem 0;
+  background: #f7fafc;
+  font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  nav { display: none; }
+  main { margin-left: 0; padding: 1.5rem; }
+}
