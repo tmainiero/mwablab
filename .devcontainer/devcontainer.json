@@ -1,0 +1,21 @@
+{
+  "name": "mwablab",
+  "dockerFile": "../Dockerfile",
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "postCreateCommand": "cd src/haskell && cabal update && cabal build all --only-dependencies",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "haskell.haskell",
+        "banacorn.agda-mode",
+        "james-yu.latex-workshop",
+        "rhiner.vscode-commonlisp"
+      ],
+      "settings": {
+        "haskell.manageHLS": "PATH",
+        "editor.tabSize": 2
+      }
+    }
+  }
+}
