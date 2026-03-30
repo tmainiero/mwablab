@@ -45,6 +45,7 @@
         docPkgs = [
           pkgs.texliveFull
           pkgs.pandoc
+          pkgs.python3
         ];
 
         # --- Shared ------------------------------------------------------------
@@ -121,6 +122,26 @@
             cd $HOME/haskell
             cabal --config-file=/dev/null build all 2>&1
             cabal --config-file=/dev/null test all 2>&1
+            touch $out
+          '';
+
+          semtex-registry = pkgs.runCommand "semtex-registry" {
+            buildInputs = [ pkgs.python3 ];
+          } ''
+            cp -r ${self}/src/spec $TMPDIR/spec
+            cp -r ${self}/src/haskell $TMPDIR/haskell
+            cp -r ${self}/src/agda $TMPDIR/agda
+            cp -r ${self}/src/lisp $TMPDIR/lisp
+            chmod -R u+w $TMPDIR/spec
+            mkdir -p $TMPDIR/src
+            ln -s $TMPDIR/spec $TMPDIR/src/spec
+            ln -s $TMPDIR/haskell $TMPDIR/src/haskell
+            ln -s $TMPDIR/agda $TMPDIR/src/agda
+            ln -s $TMPDIR/lisp $TMPDIR/src/lisp
+            cd $TMPDIR
+            python3 ${self}/tools/semtex.py extract spec/foundations/*.tex
+            python3 ${self}/tools/semtex.py merge spec/
+            python3 ${self}/tools/semtex.py validate spec/registry.json .
             touch $out
           '';
 

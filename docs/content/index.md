@@ -37,7 +37,7 @@ Phase 1b (monoidal categories, enrichment) $\to$ Phase 2 (Yoneda, limits, adjunc
    If two implementations disagree, the spec adjudicates.
 
 2. **Two-track Haskell.** A typeclass track (open, extensible, Set-enriched) and a data track
-   (reified records, future substrate for $\caty{V}$-enrichment).
+   (reified records, future substrate for $\Category{V}$-enrichment).
 
 3. **Universe polymorphism.** Agda uses three universe levels per category
    (objects $o$, morphisms $\ell$, equality $e$). Haskell uses kind polymorphism.

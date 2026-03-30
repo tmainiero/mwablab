@@ -7,30 +7,30 @@ It sends objects to objects and morphisms to morphisms, respecting identity and 
 
 ## Definition
 
-Let $\caty{C}$ and $\caty{D}$ be categories.
-A **functor** $\fun{F} : \caty{C} \to \caty{D}$ consists of:
+Let $\Category{C}$ and $\Category{D}$ be categories.
+A **functor** $\Functor{F} : \Category{C} \to \Category{D}$ consists of:
 
-1. A map on objects $\fun{F} : \Ob(\caty{C}) \to \Ob(\caty{D})$.
-2. For each pair $X, Y \in \Ob(\caty{C})$, a map on hom-sets
-$$\fun{F}_{X,Y} : \Hom_{\caty{C}}(X, Y) \to \Hom_{\caty{D}}(\fun{F}(X), \fun{F}(Y)).$$
+1. A map on objects $\Functor{F} : \Ob(\Category{C}) \to \Ob(\Category{D})$.
+2. For each pair $X, Y \in \Ob(\Category{C})$, a map on hom-sets
+$$\Functor{F}_{X,Y} : \Hom_{\Category{C}}(X, Y) \to \Hom_{\Category{D}}(\Functor{F}(X), \Functor{F}(Y)).$$
 
 subject to:
 
-- **Identity preservation.** For each $X \in \Ob(\caty{C})$,
-  $$\fun{F}(\id_X) = \id_{\fun{F}(X)}.$$
+- **Identity preservation.** For each $X \in \Ob(\Category{C})$,
+  $$\Functor{F}(\id_X) = \id_{\Functor{F}(X)}.$$
 
-- **Composition preservation.** For all $f : X \to Y$ and $g : Y \to Z$ in $\caty{C}$,
-  $$\fun{F}(g \circ f) = \fun{F}(g) \circ \fun{F}(f).$$
+- **Composition preservation.** For all $f : X \to Y$ and $g : Y \to Z$ in $\Category{C}$,
+  $$\Functor{F}(g \circ f) = \Functor{F}(g) \circ \Functor{F}(f).$$
 
 Reference: [Stacks Project, Tag 0014](https://stacks.math.columbia.edu/tag/0014).
 
-The **identity functor** $\operatorname{Id}_{\caty{C}} : \caty{C} \to \caty{C}$ fixes all objects and
-morphisms. Given functors $\fun{F} : \caty{C} \to \caty{D}$ and $\fun{G} : \caty{D} \to \caty{E}$,
-their **composite** $\fun{G} \circ \fun{F} : \caty{C} \to \caty{E}$ applies each in turn:
-$(\fun{G} \circ \fun{F})(X) = \fun{G}(\fun{F}(X))$ on objects and
-$(\fun{G} \circ \fun{F})(f) = \fun{G}(\fun{F}(f))$ on morphisms.
+The **identity functor** $\operatorname{Id}_{\Category{C}} : \Category{C} \to \Category{C}$ fixes all objects and
+morphisms. Given functors $\Functor{F} : \Category{C} \to \Category{D}$ and $\Functor{G} : \Category{D} \to \Category{E}$,
+their **composite** $\Functor{G} \circ \Functor{F} : \Category{C} \to \Category{E}$ applies each in turn:
+$(\Functor{G} \circ \Functor{F})(X) = \Functor{G}(\Functor{F}(X))$ on objects and
+$(\Functor{G} \circ \Functor{F})(f) = \Functor{G}(\Functor{F}(f))$ on morphisms.
 Functor composition is associative and $\operatorname{Id}$ is the unit;
-small categories and functors therefore form a category $\caty{Cat}$.
+small categories and functors therefore form a category $\Category{Cat}$.
 
 ---
 
@@ -54,7 +54,7 @@ The functional dependency `f -> cat1 cat2` enforces that a type constructor `f` 
 its source and target categories uniquely.
 The action on objects is implicit in Haskell's type system: `f a` is the image of object `a`.
 `cmap` is the action on morphisms: given $f : a \to b$ in `cat1`, it produces
-$\fun{F}(f) : \fun{F}(a) \to \fun{F}(b)$ in `cat2`.
+$\Functor{F}(f) : \Functor{F}(a) \to \Functor{F}(b)$ in `cat2`.
 
 ### Data track
 
@@ -67,8 +67,8 @@ newtype FunctorData (hom1 :: Type -> Type -> Type)
 ```
 
 `FunctorData` reifies a functor as a first-class value rather than a typeclass instance.
-This is the substrate for future $\caty{V}$-enriched functors, where morphism-mapping must
-be a morphism in the enriching category $\caty{V}$, not just a Haskell function.
+This is the substrate for future $\Category{V}$-enriched functors, where morphism-mapping must
+be a morphism in the enriching category $\Category{V}$, not just a Haskell function.
 
 ---
 
@@ -123,7 +123,7 @@ A `functor` instance carries its source and target categories explicitly as slot
 alongside two function-valued slots for the object and morphism maps.
 `fobj` and `fmap` are the public interface; the default methods delegate to the slots via `funcall`.
 CLOS dispatch allows specialised subtypes to override either operation directly,
-which is the natural hook for building the representable functors $\Hom(\caty{C})(A, -)$.
+which is the natural hook for building the representable functors $\Hom(\Category{C})(A, -)$.
 
 ---
 
@@ -149,7 +149,7 @@ instance CFunctor Id (->) (->) where
   cmap f (Id a) = Id (f a)
 ```
 
-The identity functor on $\caty{Hask}$: objects and morphisms pass through unchanged (up to the `Id` wrapper).
+The identity functor on $\Category{Hask}$: objects and morphisms pass through unchanged (up to the `Id` wrapper).
 
 ---
 
