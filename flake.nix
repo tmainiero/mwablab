@@ -131,7 +131,9 @@
           '';
 
           semtex-registry = pkgs.runCommand "semtex-registry" {
-            buildInputs = [ semtex ];
+            buildInputs = [ semtex pkgs.glibcLocales ];
+            LANG = "en_US.UTF-8";
+            LOCALE_ARCHIVE = "${pkgs.glibcLocales}/lib/locale/locale-archive";
           } ''
             cp -r ${self}/src/spec $TMPDIR/spec
             cp -r ${self}/src/haskell $TMPDIR/haskell
@@ -151,10 +153,13 @@
           '';
 
           docs-build = pkgs.runCommand "docs-build" {
-            buildInputs = [ pkgs.pandoc semtex ];
+            buildInputs = [ pkgs.pandoc semtex pkgs.glibcLocales ];
+            LANG = "en_US.UTF-8";
+            LOCALE_ARCHIVE = "${pkgs.glibcLocales}/lib/locale/locale-archive";
           } ''
             cp -r ${self}/docs $TMPDIR/docs
-            chmod -R u+w $TMPDIR/docs
+            cp -r ${self}/src $TMPDIR/src
+            chmod -R u+w $TMPDIR/docs $TMPDIR/src
             cd $TMPDIR/docs
             if [ -f build.sh ] && ls content/*.md 1>/dev/null 2>&1; then
               bash build.sh || exit 1
