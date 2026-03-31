@@ -13,7 +13,7 @@ SITE_DIR="$DOCS_DIR/site"
 CONTENT_DIR="$DOCS_DIR/content"
 TEMPLATE="$DOCS_DIR/templates/default.html"
 THEME_FILE="$DOCS_DIR/css/themes/$THEME.css"
-SEMTEX="$PROJECT_ROOT/tools/semtex.py"
+SEMTEX="semtex"
 
 if [ ! -f "$THEME_FILE" ]; then
   echo "Unknown theme: $THEME"
@@ -25,12 +25,12 @@ rm -rf "$SITE_DIR"
 mkdir -p "$SITE_DIR/foundations" "$SITE_DIR/css"
 
 # --- Pre-build: generate registry and MathJax macros ---
-if [ -f "$SEMTEX" ]; then
+if command -v "$SEMTEX" >/dev/null 2>&1; then
   echo "Generating concept registry..."
-  python3 "$SEMTEX" extract "$PROJECT_ROOT/src/spec/foundations/"*.tex 2>/dev/null || true
-  python3 "$SEMTEX" merge "$PROJECT_ROOT/src/spec/" 2>/dev/null || true
+  $SEMTEX extract "$PROJECT_ROOT/src/spec/foundations/"*.tex 2>/dev/null || true
+  $SEMTEX merge "$PROJECT_ROOT/src/spec/" 2>/dev/null || true
   echo "Syncing MathJax macros from preamble..."
-  python3 "$SEMTEX" mathjax "$PROJECT_ROOT/src/spec/preamble.tex" \
+  $SEMTEX mathjax "$PROJECT_ROOT/src/spec/preamble.tex" \
     > "$SITE_DIR/mathjax_config.js"
 fi
 

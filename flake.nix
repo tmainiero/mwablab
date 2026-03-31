@@ -22,6 +22,9 @@
           tasty-hunit
           containers
           mtl
+          aeson
+          megaparsec
+          optparse-applicative
         ];
         hsShellPkgs = [
           (hsPkgs.ghcWithPackages hsDeps)
@@ -29,6 +32,9 @@
           hsPkgs.haskell-language-server
           pkgs.hlint
         ];
+
+        # --- Semtex (TeX preprocessor) -------------------------------------------
+        semtex = hsPkgs.callCabal2nix "semtex" ./tools/semtex-hs {};
 
         # --- Agda --------------------------------------------------------------
         agdaWithPkgs = pkgs.agda.withPackages (ap: [
@@ -45,7 +51,6 @@
         docPkgs = [
           pkgs.texliveFull
           pkgs.pandoc
-          pkgs.python3
         ];
 
         # --- Shared ------------------------------------------------------------
@@ -58,7 +63,7 @@
         devShells = {
           default = pkgs.mkShell {
             name = "mwablab-full";
-            buildInputs = hsShellPkgs ++ [ agdaWithPkgs ] ++ lispPkgs ++ docPkgs ++ sharedPkgs;
+            buildInputs = hsShellPkgs ++ [ agdaWithPkgs ] ++ [ semtex ] ++ lispPkgs ++ docPkgs ++ sharedPkgs;
             shellHook = ''
               echo "mwablab — full dev shell (Haskell + Agda + CL + docs)"
             '';
@@ -126,7 +131,7 @@
           '';
 
           semtex-registry = pkgs.runCommand "semtex-registry" {
-            buildInputs = [ pkgs.python3 ];
+            buildInputs = [ semtex ];
           } ''
             cp -r ${self}/src/spec $TMPDIR/spec
             cp -r ${self}/src/haskell $TMPDIR/haskell
@@ -139,14 +144,14 @@
             ln -s $TMPDIR/agda $TMPDIR/src/agda
             ln -s $TMPDIR/lisp $TMPDIR/src/lisp
             cd $TMPDIR
-            python3 ${self}/tools/semtex.py extract spec/foundations/*.tex
-            python3 ${self}/tools/semtex.py merge spec/
-            python3 ${self}/tools/semtex.py validate spec/registry.json .
+            semtex extract spec/foundations/*.tex
+            semtex merge spec/
+            semtex validate spec/registry.json .
             touch $out
           '';
 
           docs-build = pkgs.runCommand "docs-build" {
-            buildInputs = [ pkgs.pandoc ];
+            buildInputs = [ pkgs.pandoc semtex ];
           } ''
             cp -r ${self}/docs $TMPDIR/docs
             chmod -R u+w $TMPDIR/docs
