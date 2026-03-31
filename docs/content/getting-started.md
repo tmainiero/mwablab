@@ -114,3 +114,26 @@ nix develop   # need pandoc
 ./docs/build.sh
 open docs/site/index.html
 ```
+
+## Semtex --- the concept preprocessor
+
+The TeX specifications use semantic macros (`\concept`, `\depends`, `\implements`, etc.) that semtex extracts into a machine-readable concept graph.
+
+```bash
+# Extract per-file metadata
+semtex extract src/spec/foundations/*.tex
+
+# Merge into a single registry
+semtex merge src/spec/
+
+# Validate all cross-references
+semtex validate src/spec/registry.json .
+
+# Generate Graphviz DOT graph
+semtex graph src/spec/registry.json | dot -Tsvg > concepts.svg
+
+# Generate MathJax macro config
+semtex mathjax src/spec/preamble.tex > mathjax_config.js
+```
+
+The `docs/build.sh` script runs these automatically.

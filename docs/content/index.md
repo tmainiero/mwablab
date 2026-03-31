@@ -30,6 +30,12 @@ Every definition traces back to a TeX specification in `src/spec/`, which is the
 
 Phase 1b (monoidal categories, enrichment) $\to$ Phase 2 (Yoneda, limits, adjunctions, Kan extensions) $\to$ Phase 3 (sites, sheaves, algebra, simplicial methods) $\to$ Phase 4 (homological algebra, derived categories).
 
+### Concept graph
+
+The dependency graph of all implemented concepts, generated from the TeX specifications:
+
+![Concept dependency graph](concepts.svg)
+
 ## Design principles
 
 1. **Spec as initial object.** The TeX specification is the universal source.

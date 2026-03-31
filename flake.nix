@@ -51,6 +51,7 @@
         docPkgs = [
           pkgs.texliveFull
           pkgs.pandoc
+          pkgs.graphviz
         ];
 
         # --- Shared ------------------------------------------------------------

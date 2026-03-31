@@ -32,6 +32,11 @@ if command -v "$SEMTEX" >/dev/null 2>&1; then
   echo "Syncing MathJax macros from preamble..."
   $SEMTEX mathjax "$PROJECT_ROOT/src/spec/preamble.tex" \
     > "$SITE_DIR/mathjax_config.js"
+  if command -v dot >/dev/null 2>&1; then
+    echo "Generating concept graph..."
+    $SEMTEX graph "$PROJECT_ROOT/src/spec/registry.json" \
+      | dot -Tsvg > "$SITE_DIR/concepts.svg"
+  fi
 fi
 
 # Copy static assets
