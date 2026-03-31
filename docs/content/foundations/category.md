@@ -20,6 +20,8 @@ Reference: [Stacks Project 0014](https://stacks.math.columbia.edu/tag/0014).
 
 ## Haskell
 
+Source: `src/haskell/src/Cat/Category.hs`
+
 `Cat.Category` provides two encodings.
 
 ### Typeclass track
@@ -61,6 +63,8 @@ This is the substrate for V-enrichment (planned Phase 1b): a $\Category{V}$-enri
 
 ## Agda
 
+Source: `src/agda/Cat/Category.agda`
+
 `Cat.Category` follows the Hu–Carette (`agda-categories`) design: three universe levels and setoid equality.
 
 ```agda
@@ -90,6 +94,8 @@ The diagrammatic alias `_≫_` (defined as `f ≫ g = g ∘ f`) mirrors Haskell'
 ---
 
 ## Common Lisp
+
+Source: `src/lisp/src/category.lisp`
 
 `mwablab` represents categories as CLOS instances with function-valued slots, supporting both finite (list-based) and infinite (closure-based) categories.
 
@@ -176,6 +182,8 @@ $$\id_Y \circ f = f$$
 
 **Right identity**
 $$f \circ \id_X = f$$
+
+Source: `src/haskell/test/Cat/CategorySpec.hs`
 
 The QuickCheck suite verifies all three laws for the `(->)` instance, testing against random functions `Int -> Int`:
 

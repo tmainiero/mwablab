@@ -24,7 +24,7 @@ of $\circ$ with arguments relabelled; left and right identity laws swap roles.
 
 ## Haskell
 
-`src/haskell/src/Cat/Opposite.hs`
+Source: `src/haskell/src/Cat/Opposite.hs`
 
 The opposite category is captured by a single newtype that swaps the source and target
 indices:
@@ -58,7 +58,7 @@ oppositeData (CatData ident comp) = CatData
 
 ## Agda
 
-`src/agda/Cat/Opposite.agda`
+Source: `src/agda/Cat/Opposite.agda`
 
 The postfix operator `_op` constructs $\Category{C}^\op$ from any `Category` record.
 The key moves are two `flip`s:
@@ -82,13 +82,13 @@ The associativity proofs swap (`assoc ↔ sym-assoc`) and the identity proofs
 swap (`identityˡ ↔ identityʳ`) — exactly reflecting the composition reversal.
 All other fields (`Obj`, `_≈_`, `id`, `equiv`, `identity²`) are unchanged.
 
-*Reference: Stacks Project Tag 001C.*
+*Reference: Stacks Project Tag 001M.*
 
 ---
 
 ## Common Lisp
 
-`src/lisp/src/opposite.lisp`
+Source: `src/lisp/src/opposite.lisp`
 
 ```lisp
 (defun opposite-category (cat)
@@ -103,7 +103,7 @@ All other fields (`Obj`, `_≈_`, `id`, `equiv`, `identity²`) are unchanged.
 The `:hom` closure swaps arguments; the `:compose` closure reverses argument
 order. Objects and identities are shared with the original category.
 
-*Reference: Stacks Project Tag 0013.*
+*Reference: Stacks Project Tag 001M.*
 
 ---
 
@@ -117,6 +117,8 @@ $$\Hom_{(\Category{C}^\op)^\op}(X, Y)
   = \Hom_{\Category{C}}(X, Y),$$
 
 and composition $f \circ^{\op\op} g = g \circ^\op f = f \circ g$ agrees with $\Category{C}$.
+
+Source: `src/haskell/test/Cat/OppositeSpec.hs`
 
 In Haskell this is witnessed by `getOp . getOp`:
 
