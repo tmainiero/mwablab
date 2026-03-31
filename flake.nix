@@ -48,8 +48,19 @@
         ];
 
         # --- Docs --------------------------------------------------------------
+        texlivePkgs = pkgs.texliveBasic.withPackages (ps: with ps; [
+          mathtools   # enhanced align, \DeclarePairedDelimiter
+          pgf         # tikz/pgf graphics (dep of tikz-cd, not auto-pulled)
+          tikz-cd     # commutative diagrams
+          xcolor      # \colorlet, \colorbox — not in collection-latex
+          subfiles    # multi-file document structure
+          lm          # Latin Modern fonts (avoids bitmap CM fallback)
+          ec          # European Computer Modern T1 font metrics
+          cm-super    # Type1 outlines for EC/TC fonts (tcrm, etc.)
+        ]);
+
         docPkgs = [
-          pkgs.texliveFull
+          texlivePkgs
           pkgs.pandoc
           pkgs.graphviz
         ];
