@@ -20,6 +20,7 @@ library semtex-lib
     Semtex.Types
     Semtex.Extract
     Semtex.Extract.Parser
+    Semtex.Graph
     Semtex.Merge
     Semtex.Validate
     Semtex.MathJax

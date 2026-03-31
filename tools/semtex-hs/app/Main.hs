@@ -1,19 +1,22 @@
 -- | CLI entry point for semtex — wires up subcommands via optparse-applicative.
 --
--- Exposes four subcommands:
+-- Exposes five subcommands:
 --
 --   * @extract FILE [FILE ...]@ — extract concept graphs from TeX files
 --   * @merge DIR@ — merge per-file .semtex.json into registry.json
 --   * @validate REGISTRY [PROJECT_ROOT]@ — validate a registry
 --   * @mathjax PREAMBLE@ — generate MathJax macro configuration
+--   * @graph REGISTRY@ — emit Graphviz DOT from registry
 --
 -- Each subcommand dispatches to its corresponding module
--- ('Semtex.Extract', 'Semtex.Merge', 'Semtex.Validate', 'Semtex.MathJax').
+-- ('Semtex.Extract', 'Semtex.Merge', 'Semtex.Validate', 'Semtex.MathJax',
+-- 'Semtex.Graph').
 module Main (main) where
 
 import Options.Applicative
 
 import Semtex.Extract (extractFiles)
+import Semtex.Graph (runGraph)
 import Semtex.Merge (loadAndMerge)
 import Semtex.Validate (runValidate)
 import Semtex.MathJax (runMathJax)
@@ -24,6 +27,7 @@ data Command
   | Merge FilePath
   | Validate FilePath (Maybe FilePath)
   | MathJax FilePath
+  | Graph FilePath
 
 -- | Parser for the full CLI.
 --
@@ -39,6 +43,7 @@ commandParser = info (helper <*> cmds) $
       <> command "merge"    (info mergeCmd    (progDesc "Merge .semtex.json -> registry.json"))
       <> command "validate" (info validateCmd (progDesc "Validate registry"))
       <> command "mathjax"  (info mathjaxCmd  (progDesc "Generate MathJax macro config"))
+      <> command "graph"    (info graphCmd    (progDesc "Emit Graphviz DOT from registry"))
 
     extractCmd  = Extract <$> some (argument str (metavar "FILE..."))
     mergeCmd    = Merge <$> argument str (metavar "DIR")
@@ -46,6 +51,7 @@ commandParser = info (helper <*> cmds) $
       <$> argument str (metavar "REGISTRY")
       <*> optional (argument str (metavar "PROJECT_ROOT"))
     mathjaxCmd  = MathJax <$> argument str (metavar "PREAMBLE")
+    graphCmd    = Graph <$> argument str (metavar "REGISTRY")
 
 -- | Main entry point.
 --
@@ -58,3 +64,4 @@ main = do
     Merge dir         -> loadAndMerge dir
     Validate reg root -> runValidate reg root
     MathJax preamble  -> runMathJax preamble
+    Graph reg         -> runGraph reg
