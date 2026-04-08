@@ -35,9 +35,8 @@ jobs:
           key: nix-docs-${{ hashFiles('flake.lock', 'tools/semtex-hs/**') }}
           restore-keys: nix-docs-
 
-      - name: Build docs via semtex site
-        run: |
-          nix develop .#docs --command bash -c "semtex site src/spec/foundations/ docs/site/"
+      - name: Build docs
+        run: nix develop .#docs --command bash -c "cd docs && bash build.sh"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
