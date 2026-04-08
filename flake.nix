@@ -42,6 +42,11 @@
           ap.agda-categories
         ]);
 
+        # --- Julia --------------------------------------------------------------
+        juliaPkgs = [
+          pkgs.julia-bin
+        ];
+
         # --- Common Lisp -------------------------------------------------------
         lispPkgs = [
           pkgs.sbcl
@@ -75,9 +80,9 @@
         devShells = {
           default = pkgs.mkShell {
             name = "mwablab-full";
-            buildInputs = hsShellPkgs ++ [ agdaWithPkgs ] ++ [ semtex ] ++ lispPkgs ++ docPkgs ++ sharedPkgs;
+            buildInputs = hsShellPkgs ++ [ agdaWithPkgs ] ++ [ semtex ] ++ juliaPkgs ++ lispPkgs ++ docPkgs ++ sharedPkgs;
             shellHook = ''
-              echo "mwablab — full dev shell (Haskell + Agda + CL + docs)"
+              echo "mwablab — full dev shell (Haskell + Agda + Julia + CL + docs)"
             '';
           };
 
@@ -102,6 +107,14 @@
             buildInputs = lispPkgs ++ sharedPkgs;
             shellHook = ''
               echo "mwablab — Common Lisp dev shell (SBCL)"
+            '';
+          };
+
+          julia = pkgs.mkShell {
+            name = "mwablab-julia";
+            buildInputs = juliaPkgs ++ sharedPkgs;
+            shellHook = ''
+              echo "mwablab — Julia dev shell"
             '';
           };
         };
