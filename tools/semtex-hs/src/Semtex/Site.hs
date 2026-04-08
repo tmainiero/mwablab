@@ -3,9 +3,14 @@
 
 -- | Doc site generation for semtex v2.
 --
--- Pipeline: TeX -> preprocess (strip semtex macros, inject back-refs)
---           -> pandoc --mathml --template -> HTML
--- tikz-cd diagrams: pdflatex + pdf2svg -> SVG (fallback: placeholder)
+-- Pipeline:
+--   1. Parse preamble for type/instance macros
+--   2. Extract atoms from each TeX file (Atoms.hs)
+--   3. Assign UIDs (Uid.hs)
+--   4. Scan symbol usages and compute back-refs (SymbolTrack.hs)
+--   5. Compute display numbers from section paths
+--   6. For each file: inject display numbers and back-refs into atom
+--      content, strip semtex macros, render tikz-cd, pass to pandoc
 --
 -- The @site@ subcommand generates a static HTML site from TeX specs.
 -- Uses the pandoc template at @docs/templates/default.html@ and CSS
@@ -23,11 +28,14 @@ module Semtex.Site
   , texToHtml
     -- * TikZ rendering
   , renderTikzDiagrams
+    -- * Display numbers
+  , displayNumber
   ) where
 
 import Control.Exception   (SomeException, catch)
-import Data.List           (isSuffixOf, sort)
+import Data.List           (intercalate, isSuffixOf, sort)
 import Data.Map.Strict     (Map)
+import Data.Set            (Set)
 import Data.Text           (Text)
 import System.Directory    (createDirectoryIfMissing, doesFileExist,
                             listDirectory, doesDirectoryExist,
@@ -39,10 +47,15 @@ import System.IO.Temp      (withSystemTempDirectory)
 import System.Process      (readProcessWithExitCode)
 
 import qualified Data.Map.Strict  as Map
+import qualified Data.Set         as Set
 import qualified Data.Text        as T
 import qualified Data.Text.IO     as TIO
 
+import Semtex.Extract.Atoms (extractAtoms, parseTypeMacros, parseInstanceMacros)
+import Semtex.SymbolTrack   (buildSymbolTable, scanUsages, inferDependencies,
+                             validateSymbols)
 import Semtex.Types
+import Semtex.Uid           (assignUids, initialUid)
 
 -- ---------------------------------------------------------------------------
 -- Entry point
@@ -102,13 +115,81 @@ runSite specDir outDir = do
   texFiles <- findTexFiles specDir
   putStrLn ("  found " ++ show (length texFiles) ++ " TeX files")
 
-  -- Process each file using the pandoc template.
-  htmlFiles <- mapM (processTexFile preamble templatePath outDir) texFiles
+  -- --- v2 atom pipeline ---
 
-  -- Generate index page using the template.
+  -- Parse preamble for type and instance macros.
+  let typeMacros = parseTypeMacros preamble
+      instanceMacroMap = parseInstanceMacros typeMacros preamble
+      instanceNames = Set.fromList (Map.keys instanceMacroMap)
+
+  -- Extract atoms from all files.
+  allFileAtoms <- mapM (extractAtomsFromFile' instanceNames) texFiles
+  let rawAtoms = concatMap snd allFileAtoms
+
+  putStrLn ("  extracted " ++ show (length rawAtoms) ++ " atoms")
+
+  -- Assign UIDs to atoms without one.
+  let (_nextUid, atomsWithUids) = assignUids initialUid rawAtoms
+
+  -- Build symbol table and scan usages.
+  let symTable = buildSymbolTable typeMacros instanceNames atomsWithUids
+      atomsWithUsages = scanUsages instanceNames atomsWithUids
+
+  -- Validate symbols (non-fatal for site generation).
+  let errors = validateSymbols typeMacros atomsWithUsages
+  mapM_ (\err -> hPutStrLn stderr ("  warning: " ++ show err)) errors
+
+  -- Infer dependencies and compute back-references.
+  let depEdges = inferDependencies symTable atomsWithUsages
+      backRefMap = Map.fromListWith (++)
+        [ (dep, [uid])
+        | (uid, deps) <- Map.toList depEdges
+        , dep <- deps
+        ]
+
+  putStrLn ("  symbol deps: " ++ show (Map.size depEdges)
+            ++ " edges, " ++ show (Map.size backRefMap) ++ " back-refs")
+
+  -- Populate back-refs on atoms and compute display numbers.
+  let finalAtoms = map (\a ->
+        let withBackRef = case atomUid a of
+              Just uid -> a { atomBackRefs = Map.findWithDefault [] uid backRefMap }
+              Nothing  -> a
+            dn = displayNumber (atomSectionPath withBackRef)
+        in  withBackRef { atomDisplayNumber = Just dn }
+        ) atomsWithUsages
+
+  -- Build UID -> Atom lookup for resolving back-ref display numbers.
+  let atomByUid = Map.fromList
+        [ (uid, a)
+        | a <- finalAtoms
+        , Just uid <- [atomUid a]
+        ]
+
+  -- Group final atoms back by source file.
+  let atomsByFile = groupAtomsByFile finalAtoms
+
+  -- Process each file: inject numbering/back-refs, strip macros, pandoc.
+  htmlFiles <- mapM
+    (processFileAtoms preamble templatePath outDir atomByUid atomsByFile)
+    texFiles
+
+  -- Generate index page.
   generateIndex templatePath outDir (concat htmlFiles)
 
   putStrLn ("  site generated: " ++ outDir)
+
+-- | Extract atoms from a TeX file, returning (filePath, atoms).
+extractAtomsFromFile' :: Set Text -> FilePath -> IO (FilePath, [Atom])
+extractAtomsFromFile' instanceNames fp = do
+  content <- TIO.readFile fp
+  let atoms = extractAtoms fp instanceNames content
+  pure (fp, atoms)
+
+-- | Group atoms by their source file path.
+groupAtomsByFile :: [Atom] -> Map FilePath [Atom]
+groupAtomsByFile = foldl (\m a ->
+  Map.insertWith (\new old -> old ++ new) (atomFile a) [a] m) Map.empty
 
 -- | Copy a file if the source exists; warn otherwise.
 copyAsset :: FilePath -> FilePath -> IO ()
@@ -117,6 +198,180 @@ copyAsset src dst = do
   if exists
     then copyFile src dst
     else hPutStrLn stderr ("  warning: asset not found: " ++ src)
+
+-- ---------------------------------------------------------------------------
+-- Display numbers
+-- ---------------------------------------------------------------------------
+
+-- | Compute a display number from a section path like [2, 1, 3] -> "2.1.3".
+displayNumber :: [Int] -> DisplayNumber
+displayNumber [] = DisplayNumber "0"
+displayNumber path = DisplayNumber (T.pack (intercalate "." (map show path)))
+
+-- | Format atom type as a short label for display.
+atomTypeLabel :: AtomType -> Text
+atomTypeLabel AtomParagraph   = ""
+atomTypeLabel AtomDefinition  = "Definition"
+atomTypeLabel AtomTheorem     = "Theorem"
+atomTypeLabel AtomProposition = "Proposition"
+atomTypeLabel AtomLemma       = "Lemma"
+atomTypeLabel AtomCorollary   = "Corollary"
+atomTypeLabel AtomRemark      = "Remark"
+atomTypeLabel AtomExample     = "Example"
+atomTypeLabel AtomProof       = "Proof"
+
+-- ---------------------------------------------------------------------------
+-- Atom content injection
+-- ---------------------------------------------------------------------------
+
+-- | Inject a display number anchor at the start of an atom's content.
+-- For theorem environments, adds "Definition 2.1.3." prefix.
+-- For paragraphs, adds a superscript margin number.
+-- Uses TeX commands that pandoc converts to proper HTML:
+--   \label{atom-UID}   -> <span id="atom-UID">
+--   \hyperlink{...}{N} -> <a href="#...">N</a>
+injectDisplayNumber :: Atom -> Text
+injectDisplayNumber atom =
+  case atomDisplayNumber atom of
+    Nothing -> atomContent atom
+    Just dn ->
+      let num = unDisplayNumber dn
+          label = atomTypeLabel (atomType atom)
+          anchor = case atomUid atom of
+            Just uid -> "\\label{atom-" <> unUid uid <> "}"
+            Nothing  -> ""
+          prefix = case atomType atom of
+            AtomParagraph ->
+              "\\textsuperscript{\\textbf{" <> num <> "}}" <> anchor <> " "
+            _ ->
+              "\\textbf{" <> label <> " " <> num <> ".}" <> anchor <> " "
+      in  prefix <> stripEnvWrapper (atomType atom) (atomContent atom)
+
+-- | Strip \begin{env}...\end{env} wrapper from theorem environments
+-- so we can inject the number before the content.
+stripEnvWrapper :: AtomType -> Text -> Text
+stripEnvWrapper AtomParagraph content = content
+stripEnvWrapper atomType' content =
+  let envName = atomTypeToEnvName atomType'
+      beginTag = "\\begin{" <> envName <> "}"
+      endTag = "\\end{" <> envName <> "}"
+      stripped = T.strip content
+      -- Remove \begin{env} from start
+      afterBegin = case T.stripPrefix beginTag stripped of
+        Just rest -> T.strip rest
+        Nothing   -> stripped
+      -- Remove \end{env} from end
+      beforeEnd = case T.stripSuffix endTag (T.stripEnd afterBegin) of
+        Just rest -> T.strip rest
+        Nothing   -> afterBegin
+  in  beforeEnd
+
+-- | Map atom type back to TeX environment name.
+atomTypeToEnvName :: AtomType -> Text
+atomTypeToEnvName AtomParagraph   = ""
+atomTypeToEnvName AtomDefinition  = "definition"
+atomTypeToEnvName AtomTheorem     = "theorem"
+atomTypeToEnvName AtomProposition = "proposition"
+atomTypeToEnvName AtomLemma       = "lemma"
+atomTypeToEnvName AtomCorollary   = "corollary"
+atomTypeToEnvName AtomRemark      = "remark"
+atomTypeToEnvName AtomExample     = "example"
+atomTypeToEnvName AtomProof       = "proof"
+
+-- | Inject back-references at the end of an atom's content.
+-- Renders as italic "Used in X.Y, Z.W." with clickable links.
+-- Uses \hyperlink which pandoc converts to <a href="#...">.
+injectAtomBackRefs :: Map Uid Atom -> Atom -> Text
+injectAtomBackRefs atomByUid atom =
+  let refs = atomBackRefs atom
+      refEntries = [ (uid, a)
+                   | uid <- refs
+                   , Just a <- [Map.lookup uid atomByUid]
+                   ]
+  in  if null refEntries
+        then ""
+        else
+          let refLinks = map (\(uid, a) ->
+                let dn = case atomDisplayNumber a of
+                      Just d  -> unDisplayNumber d
+                      Nothing -> unUid uid
+                in  "\\hyperlink{atom-" <> unUid uid <> "}{" <> dn <> "}"
+                ) refEntries
+          in  "\n\n\\noindent\\textit{\\small Used in "
+              <> T.intercalate ", " refLinks <> ".}\n"
+
+-- ---------------------------------------------------------------------------
+-- Per-file processing (v2 pipeline)
+-- ---------------------------------------------------------------------------
+
+-- | Process a single file's atoms through the v2 pipeline.
+-- Reconstructs the file content from annotated atoms, then converts to HTML.
+processFileAtoms
+  :: Text                    -- ^ Preamble
+  -> FilePath                -- ^ Template path
+  -> FilePath                -- ^ Output directory
+  -> Map Uid Atom            -- ^ Global UID -> Atom lookup
+  -> Map FilePath [Atom]     -- ^ Atoms grouped by file
+  -> FilePath                -- ^ Source TeX file path
+  -> IO [FilePath]
+processFileAtoms preamble templatePath outDir atomByUid atomsByFile texPath = do
+  let baseName = takeBaseName (takeFileName texPath)
+      htmlPath = outDir </> "foundations" </> baseName ++ ".html"
+      fileAtoms = Map.findWithDefault [] texPath atomsByFile
+
+  -- Read the original file for section headers (atoms don't capture them).
+  originalContent <- TIO.readFile texPath
+
+  -- Build annotated content: section headers from original + atoms with
+  -- display numbers and back-refs injected.
+  let annotatedContent = if null fileAtoms
+        -- Fallback: no atoms extracted, use plain preprocessing.
+        then stripSemtexMacros (stripDocumentWrapper originalContent)
+        else buildAnnotatedContent atomByUid originalContent fileAtoms
+
+  -- Strip remaining semtex macros from annotated content.
+  let cleaned = stripSemtexMacros annotatedContent
+
+  -- Render tikz-cd placeholders.
+  let withDiagrams = renderTikzDiagrams cleaned
+
+  -- Convert to HTML via pandoc with template.
+  htmlContent <- texToHtmlWithTemplate preamble templatePath withDiagrams baseName
+  TIO.writeFile htmlPath htmlContent
+  putStrLn ("  generated: " ++ htmlPath)
+  pure [htmlPath]
+
+-- | Build annotated file content by replacing atom regions with
+-- numbered/back-ref-annotated versions.
+--
+-- Strategy: walk the original file line by line. When we encounter content
+-- that matches an atom, replace it with the annotated version. Section
+-- headers and other non-atom content pass through.
+buildAnnotatedContent :: Map Uid Atom -> Text -> [Atom] -> Text
+buildAnnotatedContent atomByUid originalContent atoms =
+  let -- Strip document wrapper first.
+      stripped = stripDocumentWrapper originalContent
+      -- Reconstruct: section headers + annotated atoms in order.
+      sectionLines = extractSectionLines stripped
+      atomBlocks = map (renderAnnotatedAtom atomByUid) atoms
+  in  T.unlines (sectionLines ++ concatMap T.lines atomBlocks)
+
+-- | Extract section and subsection lines from content (preserving order).
+extractSectionLines :: Text -> [Text]
+extractSectionLines content =
+  filter isSectionLine (T.lines content)
+  where
+    isSectionLine line =
+      let s = T.stripStart line
+      in  T.isPrefixOf "\\section" s || T.isPrefixOf "\\subsection" s
+       || T.isPrefixOf "\\label{sec:" s
+
+-- | Render a single atom with display number and back-refs.
+renderAnnotatedAtom :: Map Uid Atom -> Atom -> Text
+renderAnnotatedAtom atomByUid atom =
+  let numbered = injectDisplayNumber atom
+      backRefs = injectAtomBackRefs atomByUid atom
+  in  numbered <> backRefs <> "\n"
 
 -- ---------------------------------------------------------------------------
 -- File discovery
@@ -140,32 +395,6 @@ findTexFiles dir = fmap sort (go dir)
                 && name /= "preamble.tex"
               then pure [path]
               else pure []
-
--- ---------------------------------------------------------------------------
--- Per-file processing
--- ---------------------------------------------------------------------------
-
--- | Process a single TeX file: preprocess -> pandoc with template -> HTML.
--- Returns the list of generated HTML file paths (for the index).
--- Pages are written to @outDir/foundations/@ so that sidebar links work.
-processTexFile :: Text -> FilePath -> FilePath -> FilePath -> IO [FilePath]
-processTexFile preamble templatePath outDir texPath = do
-  content <- TIO.readFile texPath
-
-  -- Strip metadata macros; keep content macros for pandoc.
-  let stripped = stripSemtexMacros content
-      withoutWrapper = stripDocumentWrapper stripped
-
-  -- Replace tikz-cd environments with HTML placeholders before pandoc.
-  let withDiagrams = renderTikzDiagrams withoutWrapper
-
-  let baseName = takeBaseName (takeFileName texPath)
-      htmlPath = outDir </> "foundations" </> baseName ++ ".html"
-
-  htmlContent <- texToHtmlWithTemplate preamble templatePath withDiagrams baseName
-  TIO.writeFile htmlPath htmlContent
-  putStrLn ("  generated: " ++ htmlPath)
-  pure [htmlPath]
 
 -- ---------------------------------------------------------------------------
 -- TeX preprocessing
@@ -200,10 +429,21 @@ stripSemtexMacros = T.unlines . map stripLine . T.lines
       let afterBraces = skipBracedGroups t
       in  not (T.null (T.strip afterBraces))
 
-    -- Strip inline semtex macros, preserving surrounding text.
-    inlineStrip = stripInlineMacro "stacksref"
-                . stripInlineMacro "nlabref"
+    -- Convert or strip inline semtex macros, preserving surrounding text.
+    inlineStrip = convertInlineMacro "stacksref" convertStacksref
+                . convertInlineMacro "nlabref" convertNlabref
                 . stripInlineMacro "axiom"
+                . convertInlineMacro "newmath" id
+
+    -- \stacksref{0014} -> \href{...}{\textsc{Stacks Project} Tag \texttt{0014}}
+    convertStacksref tag =
+      "\\href{https://stacks.math.columbia.edu/tag/" <> tag
+      <> "}{\\textsc{Stacks Project} Tag \\texttt{" <> tag <> "}}"
+
+    -- \nlabref{category} -> \href{...}{nLab: \textsf{category}}
+    convertNlabref page =
+      "\\href{https://ncatlab.org/nlab/show/" <> page
+      <> "}{nLab: \\textsf{" <> page <> "}}"
 
     -- Remove a single-arg macro occurrence inline: \macro{arg} -> ""
     stripInlineMacro macro txt =
@@ -214,6 +454,16 @@ stripSemtexMacros = T.unlines . map stripLine . T.lines
               let afterMacro = T.drop (T.length macro + 2) rest  -- skip \macro{
                   afterBrace = skipBracedContent afterMacro
               in  before <> stripInlineMacro macro afterBrace
+
+    -- Replace a single-arg macro inline: \macro{arg} -> f arg
+    convertInlineMacro macro f txt =
+      case T.breakOn ("\\" <> macro <> "{") txt of
+        (before, rest)
+          | T.null rest -> txt
+          | otherwise ->
+              let afterMacro = T.drop (T.length macro + 2) rest  -- skip \macro{
+                  (arg, afterBrace) = extractBracedArg afterMacro
+              in  before <> f arg <> convertInlineMacro macro f afterBrace
 
 -- | Skip past a brace-balanced group (assumes we're right after the '{').
 skipBracedContent :: Text -> Text
@@ -277,13 +527,11 @@ extractBracedArg = go (0 :: Int) T.empty
           | otherwise  -> go (depth - 1) (T.snoc acc '}') rest
         Just (c, rest) -> go depth (T.snoc acc c) rest
 
--- | Inject "Referenced by" HTML at the end of the document.
--- For now, this is a stub that will be populated when the full
--- merge pipeline provides back-reference data.
+-- | Inject "Referenced by" back-refs into content keyed by UID.
 injectBackRefs :: Map Uid [Uid] -> Text -> Text
 injectBackRefs backRefs content
   | Map.null backRefs = content
-  | otherwise = content  -- TODO: inject per-atom back-refs when merge provides data
+  | otherwise = content  -- back-refs are now injected per-atom in v2 pipeline
 
 -- | Strip \documentclass, \begin{document}, \end{document} wrappers.
 stripDocumentWrapper :: Text -> Text
@@ -341,7 +589,6 @@ texToHtml preamble texContent _baseName = do
   hasPandoc <- checkExecutable "pandoc"
   if hasPandoc
     then do
-      -- Prepend preamble macro definitions so pandoc can expand them.
       let macros = extractPandocMacros preamble
           fullInput = macros <> "\n" <> texContent
       (exitCode, stdout, pandocStderr) <- readProcessWithExitCode "pandoc"
@@ -370,18 +617,36 @@ humanTitle = map (\c -> if c == '-' then ' ' else c) . capitalizeFirst
       | otherwise = c
 
 -- | Extract macro definitions from preamble that pandoc can understand.
--- Filters to single-line \newcommand and \DeclareMathOperator definitions.
--- Multi-line macros (like \lto with \mathchoice) are skipped since pandoc
--- handles them via its own TeX macro expansion.
+-- Filters out macros that use TeX primitives pandoc cannot handle
+-- (e.g. \colorbox, \textcolor, \mathchoice, \setlength).
 extractPandocMacros :: Text -> Text
 extractPandocMacros preamble =
   let lns = T.lines preamble
-      -- Collect complete macro definitions (handling multi-line ones).
-      macros = collectMacroDefs lns
-  in  T.unlines macros
+      macros = filter (not . isUnsupportedMacro) (collectMacroDefs lns)
+      -- Simplified replacements for \mathchoice-based arrow macros.
+      -- Pandoc only needs the textstyle variant.
+      arrowFallbacks =
+        [ "\\newcommand{\\lto}{\\rightarrow}"
+        , "\\newcommand{\\lTo}{\\Rightarrow}"
+        , "\\newcommand{\\lmapsto}{\\mapsto}"
+        ]
+  in  T.unlines (macros ++ arrowFallbacks)
+
+-- | Detect macro definitions that pandoc cannot expand correctly.
+-- These are either converted in preprocessing or use unsupported primitives.
+isUnsupportedMacro :: Text -> Bool
+isUnsupportedMacro def = any (`T.isInfixOf` def)
+  [ "{\\newmath}"    -- converted to bare content in preprocessing
+  , "{\\newterm}"    -- converted to \emph in preprocessing
+  , "{\\stacksref}"  -- converted to \href in preprocessing
+  , "{\\nlabref}"    -- converted to \href in preprocessing
+  , "\\colorbox"     -- unsupported by pandoc
+  , "\\colorlet"     -- unsupported by pandoc
+  , "\\fboxsep"      -- unsupported by pandoc
+  , "\\mathchoice"   -- unsupported by pandoc (arrow macros \lto, \lTo, \lmapsto)
+  ]
 
 -- | Collect macro definitions, handling multi-line \newcommand blocks.
--- A multi-line macro starts with \newcommand and ends when braces balance.
 collectMacroDefs :: [Text] -> [Text]
 collectMacroDefs [] = []
 collectMacroDefs (l : ls)
@@ -421,7 +686,6 @@ collectUntilBalanced firstLine rest =
       _   -> n) 0
 
 -- | Fallback HTML rendering when pandoc is not available.
--- Wraps content in a <pre> block with basic escaping.
 fallbackHtml :: Text -> Text
 fallbackHtml content =
   "<div class=\"tex-fallback\"><pre>" <> escapeHtml content <> "</pre></div>"
@@ -438,8 +702,6 @@ escapeHtml = T.replace "&" "&amp;"
 -- ---------------------------------------------------------------------------
 
 -- | Replace tikz-cd environments with SVG images or placeholders.
--- If pdflatex + pdf2svg are available, renders to SVG.
--- Otherwise, inserts a styled placeholder.
 renderTikzDiagrams :: Text -> Text
 renderTikzDiagrams content =
   let chunks = splitTikzcd content
@@ -447,10 +709,9 @@ renderTikzDiagrams content =
 
 data TikzChunk
   = PlainChunk !Text
-  | TikzChunk !Text   -- the full tikzcd environment
+  | TikzChunk !Text
   deriving stock (Eq, Show)
 
--- | Split text into alternating plain/tikzcd chunks.
 splitTikzcd :: Text -> [TikzChunk]
 splitTikzcd = go []
   where
@@ -465,20 +726,15 @@ splitTikzcd = go []
                   case T.breakOn "\\end{tikzcd}" rest of
                     (tikzPart, afterEnd)
                       | T.null afterEnd ->
-                          -- Unclosed tikzcd; treat everything as plain
                           reverse (PlainChunk t : acc)
                       | otherwise ->
                           let tikzFull = tikzPart <> "\\end{tikzcd}"
                               remaining = T.drop (T.length "\\end{tikzcd}") afterEnd
                           in  go (TikzChunk tikzFull : PlainChunk before : acc) remaining
 
--- | Process a single chunk: plain text passes through,
--- tikzcd becomes a placeholder (actual SVG rendering is attempted at build time).
 processTikzChunk :: TikzChunk -> Text
 processTikzChunk (PlainChunk t) = t
 processTikzChunk (TikzChunk tikz) =
-  -- For the HTML output, we render tikz-cd as a placeholder
-  -- that shows the diagram source in a tooltip.
   let escaped = escapeHtml tikz
   in  T.unlines
         [ "<div class=\"tikz-diagram\" title=\"" <> T.take 100 escaped <> "\">"
@@ -493,7 +749,6 @@ processTikzChunk (TikzChunk tikz) =
         ]
 
 -- | Try to render a tikzcd environment to SVG using pdflatex + pdf2svg.
--- Returns Just svgContent on success, Nothing on failure.
 _renderTikzToSvg :: Text -> Text -> IO (Maybe Text)
 _renderTikzToSvg preambleContent tikzEnv = do
   hasPdflatex <- checkExecutable "pdflatex"
@@ -556,7 +811,6 @@ wrapHtml title body = T.unlines
 -- ---------------------------------------------------------------------------
 
 -- | Generate the index.html page listing all generated pages.
--- Uses the pandoc template if available for consistent site styling.
 generateIndex :: FilePath -> FilePath -> [FilePath] -> IO ()
 generateIndex templatePath outDir htmlFiles = do
   hasTemplate <- doesFileExist templatePath
@@ -592,7 +846,6 @@ generateIndex templatePath outDir htmlFiles = do
         ExitFailure _ -> writeFallbackIndex outDir entries
     else writeFallbackIndex outDir entries
 
--- | Write a basic index.html without the pandoc template.
 writeFallbackIndex :: FilePath -> [Text] -> IO ()
 writeFallbackIndex outDir entries = do
   let body = T.unlines
@@ -603,13 +856,9 @@ writeFallbackIndex outDir entries = do
         , T.unlines (map entryToHtml entries)
         , "</ul>"
         ]
-      entryToHtml entry =
-        -- entries are markdown links like "- [Title](foundations/foo.html)"
-        -- just pass them through as-is for fallback
-        "  <li>" <> entry <> "</li>"
+      entryToHtml entry = "  <li>" <> entry <> "</li>"
   TIO.writeFile (outDir </> "index.html") (wrapIndexHtml body)
 
--- | Wrap index HTML body in a basic page (fallback).
 wrapIndexHtml :: Text -> Text
 wrapIndexHtml body = T.unlines
   [ "<!DOCTYPE html>"

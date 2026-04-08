@@ -163,6 +163,9 @@ blockquote {
 /* MathML */
 math { color: var(--fg); }
 
+/* Atom numbering (semtex v2) */
+[id^="atom-"] { scroll-margin-top: 1rem; }
+
 /* Responsive */
 @media (max-width: 768px) {
   nav { display: none; }
