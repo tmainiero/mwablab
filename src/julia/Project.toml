@@ -1,0 +1,12 @@
+name = "MwabLab"
+uuid = "e4161e82-571d-4386-98af-d8730d812095"
+version = "0.1.0"
+
+[deps]
+GATlab = "f0ffcf3b-d13a-433e-917c-cc44ccf5ead2"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

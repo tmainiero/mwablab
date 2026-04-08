@@ -23,12 +23,23 @@ import Cat.Functor (CFunctor(..))
 --------------------------------------------------------------------------------
 
 -- | The category of Haskell types and functions @(->)@.
--- This is the prototypical Set-enriched category in Haskell.
 --
--- * Objects: Haskell types
--- * Morphisms: functions @a -> b@
--- * Identity: @\x -> x@
--- * Composition: @(Prelude..)@
+-- __Caveat__: This is /not/ an honest category in the mathematical sense.
+-- Haskell\'s @(->)@ fails to form a genuine category due to:
+--
+-- * @seq@ and @undefined@ break parametricity and the equational theory
+-- * @(undefined, undefined) /= undefined@, so @(,)@ is not a categorical product
+-- * Polymorphic functions are not truly natural transformations
+--
+-- We retain this instance because @(->)@ is computationally useful as an
+-- ambient hom-type for representing morphisms of honest categories
+-- (e.g., representing Set-morphisms as Haskell functions). When we write
+-- @CategoryData (->)@, we are using @(->)@ as the /representation/ of
+-- Set-enriched hom-sets, not claiming that Hask is a category.
+--
+-- For mathematical work, use the record-based constructions in the
+-- @Cat.Examples.Monoidal@ module (Phase 1b) which build honest
+-- monoidal structure on Set.
 --
 -- nLab: Hask.
 instance Category (->) where

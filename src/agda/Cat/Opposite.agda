@@ -1,5 +1,5 @@
 -- Opposite category: reverse all morphisms.
--- Reference: Stacks Project Tag 001M
+-- Reference: Stacks Project Tag 001M; nLab: opposite+category
 -- Hom_{C^op}(A,B) = Hom_C(B,A)
 module Cat.Opposite where
 

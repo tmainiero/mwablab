@@ -1,0 +1,130 @@
+\documentclass[../preamble]{subfiles}
+\begin{document}
+
+\section{Bifunctors}
+\label{sec:bifunctor}
+\concept{bifunctor}{Bifunctor}
+\depends{functor}
+\depends{product-category}
+\implements{haskell}{Cat.Bifunctor}
+\implements{agda}{Cat.Bifunctor}
+\implements{lisp}{bifunctor}
+
+Let $\Category{C}$, $\Category{D}$, and $\Category{E}$ be categories.
+A \newterm{bifunctor}
+$\newmath{\Functor{F} \colon \Category{C} \times \Category{D} \lto \Category{E}}$
+is a functor from the product category
+$\Category{C} \times \Category{D}$
+(Definition~\ref{def:product-category})
+to $\Category{E}$
+(\nlabref{bifunctor}).
+
+\begin{definition}[Bifunctor]
+  \label{def:bifunctor}
+  A \newterm{bifunctor}
+  $\Functor{F} \colon \Category{C} \times \Category{D} \lto \Category{E}$
+  consists of:
+  \begin{enumerate}
+    \item A map on objects
+      \begin{equation}
+        \begin{aligned}
+          \Functor{F} \colon
+            \Ob(\Category{C}) \times \Ob(\Category{D})
+            &\lto \Ob(\Category{E}) \\
+          (X, Y) &\lmapsto \Functor{F}(X, Y).
+        \end{aligned}
+        \label{eq:bifunctor-ob}
+      \end{equation}
+
+    \item For each pair of morphisms
+      $f \colon X_1 \lto X_2$ in $\Category{C}$
+      and $g \colon Y_1 \lto Y_2$ in $\Category{D}$,
+      a morphism
+      \begin{equation}
+        \newmath{\operatorname{bimap}(f, g)}
+          \colon \Functor{F}(X_1, Y_1) \lto \Functor{F}(X_2, Y_2)
+        \label{eq:bimap}
+      \end{equation}
+      in $\Category{E}$,
+      defined as the image of the product morphism $(f, g)$
+      under the functor $\Functor{F}$.
+  \end{enumerate}
+\end{definition}
+
+\begin{proposition}[Bimap laws]
+  \label{prop:bimap-laws}
+  The map $\operatorname{bimap}$ satisfies:
+  \begin{enumerate}
+    \item \textbf{Identity.}
+      \axiom{bifunctor}{bimap-identity}
+      \begin{equation}
+        \label{eq:bimap-id}
+        \operatorname{bimap}(\id_X, \id_Y) = \id_{\Functor{F}(X,Y)}.
+      \end{equation}
+
+    \item \textbf{Composition.}
+      \axiom{bifunctor}{bimap-composition}
+      For $f_1 \colon X_1 \lto X_2$, $f_2 \colon X_2 \lto X_3$ in $\Category{C}$,
+      and $g_1 \colon Y_1 \lto Y_2$, $g_2 \colon Y_2 \lto Y_3$ in $\Category{D}$:
+      \begin{equation}
+        \label{eq:bimap-comp}
+        \operatorname{bimap}(f_2 \circ f_1, g_2 \circ g_1)
+          = \operatorname{bimap}(f_2, g_2)
+            \circ \operatorname{bimap}(f_1, g_1).
+      \end{equation}
+  \end{enumerate}
+\end{proposition}
+
+\begin{proof}
+  Both laws follow immediately from functoriality of $\Functor{F}$
+  applied to the product category $\Category{C} \times \Category{D}$.
+  The identity law is
+  $\Functor{F}(\id_{(X,Y)}) = \Functor{F}(\id_X, \id_Y) = \id_{\Functor{F}(X,Y)}$.
+  The composition law is
+  $\Functor{F}((f_2, g_2) \circ (f_1, g_1))
+    = \Functor{F}(f_2 \circ f_1, g_2 \circ g_1)
+    = \Functor{F}(f_2, g_2) \circ \Functor{F}(f_1, g_1)$.
+\end{proof}
+
+\subsection{Separate Functoriality}
+
+\begin{proposition}[Separate functoriality]
+  \label{prop:separate-functoriality}
+  A bifunctor $\Functor{F} \colon \Category{C} \times \Category{D} \lto \Category{E}$
+  determines, and is determined by:
+  \begin{enumerate}
+    \item For each object $Y \in \Ob(\Category{D})$,
+      a functor
+      $\newmath{\Functor{F}(\mathord{-}, Y)} \colon \Category{C} \lto \Category{E}$,
+      with
+      $\Functor{F}(\mathord{-}, Y)(f) = \operatorname{bimap}(f, \id_Y)$.
+
+    \item For each object $X \in \Ob(\Category{C})$,
+      a functor
+      $\newmath{\Functor{F}(X, \mathord{-})} \colon \Category{D} \lto \Category{E}$,
+      with
+      $\Functor{F}(X, \mathord{-})(g) = \operatorname{bimap}(\id_X, g)$.
+  \end{enumerate}
+
+  These partial functors satisfy the \newterm{interchange law}:
+  \begin{equation}
+    \label{eq:bifunctor-interchange}
+    \operatorname{bimap}(f, g)
+      = \Functor{F}(\mathord{-}, Y_2)(f) \circ \Functor{F}(X_1, \mathord{-})(g)
+      = \Functor{F}(X_2, \mathord{-})(g) \circ \Functor{F}(\mathord{-}, Y_1)(f).
+  \end{equation}
+\end{proposition}
+
+\begin{proof}
+  By functoriality:
+  \begin{align*}
+    \operatorname{bimap}(f, g)
+    &= \operatorname{bimap}(f \circ \id_{X_1}, \id_{Y_2} \circ g) \\
+    &= \operatorname{bimap}(f, \id_{Y_2}) \circ \operatorname{bimap}(\id_{X_1}, g)
+  \end{align*}
+  using the composition law with
+  $(f_1, g_1) = (\id_{X_1}, g)$ and $(f_2, g_2) = (f, \id_{Y_2})$.
+  The other factorisation is analogous.
+\end{proof}
+
+\end{document}

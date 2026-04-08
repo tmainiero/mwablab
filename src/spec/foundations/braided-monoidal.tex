@@ -1,0 +1,157 @@
+\documentclass[../preamble]{subfiles}
+\begin{document}
+
+\section{Braided Monoidal Categories}
+\label{sec:braided-monoidal}
+\concept{braided-monoidal}{Braided Monoidal Category}
+\depends{monoidal-category}
+\implements{haskell}{Cat.BraidedMonoidal}
+\implements{agda}{Cat.BraidedMonoidal}
+\implements{lisp}{braided-monoidal}
+
+A \newterm{braided monoidal category} equips a monoidal category
+with a coherent notion of ``swapping'' the two factors of a tensor product
+(\nlabref{braided+monoidal+category};
+Joyal--Street, \emph{Braided tensor categories}, Advances in Mathematics 102, 1993).
+
+\begin{definition}[Braided monoidal category]
+  \label{def:braided-monoidal}
+  A \newterm{braided monoidal category}
+  is a monoidal category
+  $(\Category{C}, \otimes, I, \alpha, \lambda, \rho)$
+  (Definition~\ref{def:monoidal-category})
+  equipped with a natural isomorphism,
+  the \newterm{braiding},
+  with components
+  \begin{equation}
+    \label{eq:braiding}
+    \newmath{\sigma_{A,B}
+      \colon A \otimes B
+      \xrightarrow{\;\sim\;} B \otimes A}
+  \end{equation}
+  natural in $A$ and $B$,
+  subject to the two hexagon axioms
+  (Definition~\ref{def:hexagon-1} and Definition~\ref{def:hexagon-2}).
+\end{definition}
+
+\subsection{Hexagon Axioms}
+
+\begin{definition}[First hexagon axiom]
+  \label{def:hexagon-1}
+  \axiom{braided-monoidal}{hexagon-1}
+  The \newterm{first hexagon axiom} requires that
+  for all objects $A, B, C \in \Ob(\Category{C})$,
+  the following diagram commutes:
+  \begin{equation}
+    \label{eq:hexagon-1}
+    \begin{tikzcd}[column sep=large]
+      (A \otimes B) \otimes C
+        \arrow[r, "\alpha_{A,B,C}"]
+        \arrow[d, "\sigma_{A,B} \otimes \id_C"']
+      & A \otimes (B \otimes C)
+        \arrow[r, "\sigma_{A, B \otimes C}"]
+      & (B \otimes C) \otimes A
+        \arrow[d, "\alpha_{B,C,A}"]
+      \\
+      (B \otimes A) \otimes C
+        \arrow[r, "\alpha_{B,A,C}"']
+      & B \otimes (A \otimes C)
+        \arrow[r, "\id_B \otimes \sigma_{A,C}"']
+      & B \otimes (C \otimes A)
+    \end{tikzcd}
+  \end{equation}
+  That is,
+  the two composite paths from
+  $(A \otimes B) \otimes C$
+  to
+  $B \otimes (C \otimes A)$
+  are equal.
+\end{definition}
+
+\begin{definition}[Second hexagon axiom]
+  \label{def:hexagon-2}
+  \axiom{braided-monoidal}{hexagon-2}
+  The \newterm{second hexagon axiom} requires that
+  for all objects $A, B, C \in \Ob(\Category{C})$,
+  the following diagram commutes:
+  \begin{equation}
+    \label{eq:hexagon-2}
+    \begin{tikzcd}[column sep=large]
+      A \otimes (B \otimes C)
+        \arrow[r, "\alpha^{-1}_{A,B,C}"]
+        \arrow[d, "\id_A \otimes \sigma_{B,C}"']
+      & (A \otimes B) \otimes C
+        \arrow[r, "\sigma_{A \otimes B, C}"]
+      & C \otimes (A \otimes B)
+        \arrow[d, "\alpha^{-1}_{C,A,B}"]
+      \\
+      A \otimes (C \otimes B)
+        \arrow[r, "\alpha^{-1}_{A,C,B}"']
+      & (A \otimes C) \otimes B
+        \arrow[r, "\sigma_{A,C} \otimes \id_B"']
+      & (C \otimes A) \otimes B
+    \end{tikzcd}
+  \end{equation}
+  That is,
+  the two composite paths from
+  $A \otimes (B \otimes C)$
+  to
+  $(C \otimes A) \otimes B$
+  are equal.
+\end{definition}
+
+\subsection{Remarks}
+
+\begin{remark}[Naturality of the braiding]
+  \label{rem:braiding-naturality}
+  The naturality of $\sigma$ means that
+  for all morphisms
+  $f \colon A \lto A'$ and $g \colon B \lto B'$,
+  the following square commutes:
+  \begin{equation}
+    \label{eq:braiding-naturality}
+    \begin{tikzcd}
+      A \otimes B
+        \arrow[r, "\sigma_{A,B}"]
+        \arrow[d, "f \otimes g"']
+      & B \otimes A
+        \arrow[d, "g \otimes f"]
+      \\
+      A' \otimes B'
+        \arrow[r, "\sigma_{A',B'}"']
+      & B' \otimes A'
+    \end{tikzcd}
+  \end{equation}
+\end{remark}
+
+\begin{remark}[Naming convention]
+  \label{rem:hexagon-naming}
+  The hexagon axioms are so named because,
+  when expanded using explicit associators,
+  each diagram has six edges forming a hexagonal shape.
+  Our rectangular presentation is equivalent
+  and more compact.
+\end{remark}
+
+\begin{remark}[Yang--Baxter equation]
+  \label{rem:yang-baxter}
+  In a braided monoidal category,
+  the braiding satisfies the
+  \newterm{Yang--Baxter equation}:
+  \begin{equation}
+    \label{eq:yang-baxter}
+    (\id_B \otimes \sigma_{A,C})
+    \circ (\sigma_{A,B} \otimes \id_C)
+    \circ (\id_A \otimes \sigma_{B,C})
+    =
+    (\sigma_{B,C} \otimes \id_A)
+    \circ (\id_B \otimes \sigma_{A,C})
+    \circ (\sigma_{A,B} \otimes \id_C)
+  \end{equation}
+  as morphisms
+  $A \otimes B \otimes C \lto C \otimes B \otimes A$
+  (where we suppress associators by Mac Lane's coherence theorem).
+  This follows from the hexagon axioms alone.
+\end{remark}
+
+\end{document}

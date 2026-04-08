@@ -107,6 +107,29 @@ order. Objects and identities are shared with the original category.
 
 ---
 
+## Julia
+
+Source: `src/julia/src/Opposite.jl`
+
+The opposite category is implemented as a generic `@instance` that wraps any `ThCategory` model, reversing composition.
+
+```julia
+struct OpCat{ObT, HomT, M}
+    inner::M
+end
+
+@instance ThCategory{ObT, HomT} [model::OpCat{ObT, HomT, M}] where {ObT, HomT, M} begin
+    id(a::ObT) = ThCategory.id[model.inner](a)
+    compose(f::HomT, g::HomT) = ThCategory.compose[model.inner](g, f)
+end
+```
+
+The `OpCat` struct wraps any model `M` implementing `ThCategory{ObT, HomT}`. The `@instance` declaration is generic over the sort types via `where {ObT, HomT, M}`, following the pattern of GATlab's own `OpC` in its stdlib. Identity is unchanged; `compose(f, g)` in $C^{op}$ delegates to `compose(g, f)` in $C$, reversing the order. The helper `opposite(m, ObT, HomT)` constructs the wrapped model. Uses GATlab v0.2.2.
+
+Reference: [Stacks Project 001M](https://stacks.math.columbia.edu/tag/001M); [nLab, opposite category](https://ncatlab.org/nlab/show/opposite+category).
+
+---
+
 ## Key property: $(\Category{C}^\op)^\op = \Category{C}$
 
 The opposite construction is an involution. Double reversal recovers the original

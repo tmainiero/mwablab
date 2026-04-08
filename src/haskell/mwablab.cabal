@@ -25,11 +25,18 @@ library
   import:         shared
   hs-source-dirs: src
   exposed-modules:
+    Cat.Bifunctor
+    Cat.BraidedMonoidal
     Cat.Category
     Cat.Examples
+    Cat.Examples.Monoidal
     Cat.Functor
+    Cat.Monoidal
+    Cat.NaturalIsomorphism
     Cat.NaturalTransformation
     Cat.Opposite
+    Cat.Product
+    Cat.SymmetricMonoidal
 
   build-depends:
     base >= 4.18 && < 5,
@@ -42,10 +49,17 @@ test-suite mwablab-tests
   hs-source-dirs: test
   main-is:        Main.hs
   other-modules:
+    Cat.BifunctorSpec
+    Cat.BraidedMonoidalSpec
     Cat.CategorySpec
+    Cat.Examples.MonoidalSpec
     Cat.FunctorSpec
+    Cat.MonoidalSpec
+    Cat.NaturalIsomorphismSpec
     Cat.NaturalTransformationSpec
     Cat.OppositeSpec
+    Cat.ProductSpec
+    Cat.SymmetricMonoidalSpec
 
   build-depends:
     base >= 4.18 && < 5,

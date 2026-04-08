@@ -38,9 +38,8 @@ docs/_cache/
 # Docker
 .docker/
 
-# Agent ephemera
-.claude/comms/
-.claude/agent_memory/*.tmp
+# Claude harness
+.claude/
 *.semtex.json
 registry.json
 src/spec/foundations/*.pdf

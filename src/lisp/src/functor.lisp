@@ -10,7 +10,7 @@
 ;;;;   - F(id_X) = id_{F(X)}                    (preservation of identities)
 ;;;;   - F(g ∘ f) = F(g) ∘ F(f)                 (preservation of composition)
 ;;;;
-;;;; Reference: Stacks Project, Tag 001B.
+;;;; Reference: Stacks Project, Tag 001B; nLab: functor.
 
 (defclass functor ()
   ((name

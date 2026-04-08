@@ -1,0 +1,129 @@
+\documentclass[../preamble]{subfiles}
+\begin{document}
+
+\section{Product Category}
+\label{sec:product-category}
+\concept{product-category}{Product Category}
+\depends{category}
+\depends{functor}
+\implements{haskell}{Cat.Product}
+\implements{agda}{Cat.Product}
+\implements{lisp}{product-category}
+
+Given categories $\Category{C}$ and $\Category{D}$,
+their \newterm{product category}
+$\newmath{\Category{C} \times \Category{D}}$
+is defined as follows
+(\nlabref{product+category}):
+
+\begin{definition}[Product category]
+  \label{def:product-category}
+  The \newterm{product category} $\Category{C} \times \Category{D}$
+  consists of:
+  \begin{enumerate}
+    \item \textbf{Objects.}
+      $\Ob(\Category{C} \times \Category{D})
+        = \Ob(\Category{C}) \times \Ob(\Category{D})$.
+      An object is a pair $\newmath{(X, Y)}$
+      with $X \in \Ob(\Category{C})$ and $Y \in \Ob(\Category{D})$.
+
+    \item \textbf{Morphisms.}
+      A morphism $(X_1, Y_1) \lto (X_2, Y_2)$
+      in $\Category{C} \times \Category{D}$
+      is a pair $\newmath{(f, g)}$
+      with $f \colon X_1 \lto X_2$ in $\Category{C}$
+      and $g \colon Y_1 \lto Y_2$ in $\Category{D}$.
+
+    \item \textbf{Identity.}
+      $\newmath{\id_{(X,Y)} = (\id_X, \id_Y)}$.
+
+    \item \textbf{Composition.}
+      $\newmath{(f_2, g_2) \circ (f_1, g_1) = (f_2 \circ f_1, g_2 \circ g_1)}$.
+  \end{enumerate}
+\end{definition}
+
+\begin{proposition}
+  \label{prop:product-cat-laws}
+  The product category $\Category{C} \times \Category{D}$
+  satisfies the category axioms.
+\end{proposition}
+
+\begin{proof}
+  Associativity and identity laws hold componentwise.
+  For associativity:
+  \begin{align*}
+    (h_1, h_2) \circ ((g_1, g_2) \circ (f_1, f_2))
+    &= (h_1, h_2) \circ (g_1 \circ f_1, g_2 \circ f_2) \\
+    &= (h_1 \circ (g_1 \circ f_1), h_2 \circ (g_2 \circ f_2)) \\
+    &= ((h_1 \circ g_1) \circ f_1, (h_2 \circ g_2) \circ f_2) \\
+    &= (h_1 \circ g_1, h_2 \circ g_2) \circ (f_1, f_2) \\
+    &= ((h_1, h_2) \circ (g_1, g_2)) \circ (f_1, f_2),
+  \end{align*}
+  using associativity in $\Category{C}$ and $\Category{D}$ respectively.
+  Left and right identity follow similarly from the component identities.
+\end{proof}
+
+\subsection{Projection Functors}
+
+\begin{definition}[Projection functors]
+  \label{def:projection-functors}
+  The \newterm{projection functors} are:
+  \begin{align}
+    \newmath{\Functor{\pi}_1} &\colon \Category{C} \times \Category{D} \lto \Category{C},
+      &(X, Y) &\lmapsto X,
+      &(f, g) &\lmapsto f, \label{eq:pi1} \\
+    \newmath{\Functor{\pi}_2} &\colon \Category{C} \times \Category{D} \lto \Category{D},
+      &(X, Y) &\lmapsto Y,
+      &(f, g) &\lmapsto g. \label{eq:pi2}
+  \end{align}
+  These are strict functors:
+  they preserve identities and composition by definition.
+\end{definition}
+
+\subsection{Universal Property}
+
+\begin{proposition}[Universal property of the product]
+  \label{prop:product-universal}
+  For any category $\Category{E}$
+  and functors $\Functor{F} \colon \Category{E} \lto \Category{C}$
+  and $\Functor{G} \colon \Category{E} \lto \Category{D}$,
+  there exists a unique functor
+  $\newmath{\langle \Functor{F}, \Functor{G} \rangle}
+    \colon \Category{E} \lto \Category{C} \times \Category{D}$
+  such that
+  $\Functor{\pi}_1 \circ \langle \Functor{F}, \Functor{G} \rangle = \Functor{F}$
+  and
+  $\Functor{\pi}_2 \circ \langle \Functor{F}, \Functor{G} \rangle = \Functor{G}$.
+\end{proposition}
+
+This universal property is expressed by the following diagram:
+\begin{equation}
+  \label{eq:product-universal-diagram}
+  \begin{tikzcd}
+    & \Category{E}
+      \arrow[dl, "\Functor{F}"']
+      \arrow[dr, "\Functor{G}"]
+      \arrow[d, dashed, "{\langle \Functor{F}{,} \Functor{G} \rangle}"] \\
+    \Category{C}
+    & \Category{C} \times \Category{D}
+      \arrow[l, "\Functor{\pi}_1"]
+      \arrow[r, "\Functor{\pi}_2"']
+    & \Category{D}
+  \end{tikzcd}
+\end{equation}
+
+\begin{proof}
+  Define $\langle \Functor{F}, \Functor{G} \rangle$ on objects by
+  $E \lmapsto (\Functor{F}(E), \Functor{G}(E))$
+  and on morphisms by
+  $h \lmapsto (\Functor{F}(h), \Functor{G}(h))$.
+  Functoriality follows from that of $\Functor{F}$ and $\Functor{G}$.
+  The projection equations hold by definition.
+  Uniqueness: if $\Functor{H}$ satisfies both equations,
+  then on objects $\Functor{H}(E)
+    = (\Functor{\pi}_1(\Functor{H}(E)), \Functor{\pi}_2(\Functor{H}(E)))
+    = (\Functor{F}(E), \Functor{G}(E))$,
+  and similarly on morphisms.
+\end{proof}
+
+\end{document}
