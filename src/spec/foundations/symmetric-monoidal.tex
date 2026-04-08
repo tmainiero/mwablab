@@ -1,0 +1,86 @@
+\documentclass[../preamble]{subfiles}
+\begin{document}
+
+\section{Symmetric Monoidal Categories}
+\label{sec:symmetric-monoidal}
+\concept{symmetric-monoidal}{Symmetric Monoidal Category}
+\depends{braided-monoidal}
+\implements{haskell}{Cat.SymmetricMonoidal}
+\implements{agda}{Cat.SymmetricMonoidal}
+\implements{lisp}{symmetric-monoidal}
+
+A \newterm{symmetric monoidal category} is a braided monoidal category
+whose braiding is involutive,
+so that swapping twice is the identity
+(\nlabref{symmetric+monoidal+category};
+Mac Lane, \emph{Categories for the Working Mathematician}, Chapter XI).
+
+\begin{definition}[Symmetric monoidal category]
+  \label{def:symmetric-monoidal}
+  A \newterm{symmetric monoidal category}
+  is a braided monoidal category
+  $(\Category{C}, \otimes, I, \alpha, \lambda, \rho, \sigma)$
+  (Definition~\ref{def:braided-monoidal})
+  satisfying the symmetry axiom
+  (Definition~\ref{def:symmetry}).
+\end{definition}
+
+\subsection{Symmetry Axiom}
+
+\begin{definition}[Symmetry axiom]
+  \label{def:symmetry}
+  \axiom{symmetric-monoidal}{symmetry}
+  The \newterm{symmetry axiom} requires that
+  for all objects $A, B \in \Ob(\Category{C})$,
+  the braiding is its own inverse:
+  \begin{equation}
+    \label{eq:symmetry}
+    \newmath{\sigma_{B,A} \circ \sigma_{A,B} = \id_{A \otimes B}}.
+  \end{equation}
+  Equivalently,
+  $\sigma_{A,B}^{-1} = \sigma_{B,A}$
+  for all $A$ and $B$.
+\end{definition}
+
+\subsection{Remarks}
+
+\begin{remark}[Redundancy of the second hexagon]
+  \label{rem:second-hexagon-redundant}
+  In a symmetric monoidal category,
+  the second hexagon axiom
+  (Definition~\ref{def:hexagon-2})
+  follows from the first hexagon axiom
+  (Definition~\ref{def:hexagon-1})
+  together with the symmetry condition $\sigma_{A,B}^{-1} = \sigma_{B,A}$.
+  Thus a symmetric monoidal category can equivalently be defined as
+  a monoidal category with a natural isomorphism $\sigma$
+  satisfying symmetry and the first hexagon axiom alone.
+\end{remark}
+
+\begin{remark}[Symmetric vs.\ braided]
+  \label{rem:symmetric-vs-braided}
+  Not every braided monoidal category is symmetric.
+  The category of representations of a non-cocommutative quantum group
+  provides a standard family of braided monoidal categories
+  that are not symmetric.
+  The distinction is invisible for categories like $\Set$, $\Ab$,
+  or $R$-$\mathsf{Mod}$,
+  where the swap $A \otimes B \cong B \otimes A$
+  is always involutive.
+\end{remark}
+
+\begin{remark}[Coherence for symmetric monoidal categories]
+  \label{rem:symmetric-coherence}
+  Mac Lane's coherence theorem extends to the symmetric setting:
+  every diagram built from
+  $\alpha$, $\lambda$, $\rho$, $\sigma$,
+  their inverses,
+  identities,
+  and tensor products of these
+  commutes,
+  provided the two paths induce the same underlying permutation of tensor factors.
+  This is the content of the coherence theorem for symmetric monoidal categories
+  (Mac Lane, \emph{CWM} XI.1).
+\end{remark}
+
+\end{document}
