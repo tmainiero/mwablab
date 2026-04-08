@@ -2,26 +2,26 @@
 --
 -- This module provides manual 'ToJSON' and 'FromJSON' instances rather than
 -- deriving them via 'Generic' because the Haskell records use @camelCase@
--- field names while the JSON schema uses @snake_case@.  Keeping the mapping
--- explicit here means the on-disk format is independent of Haskell naming
--- conventions and stays stable across refactors.
+-- field names while the JSON schema uses @snake_case@.
 --
--- Import this module wherever you need to read or write @registry.json@ or
--- the per-file @.semtex.json@ envelopes.
+-- v2 adds instances for Atom, AtomType, Uid, DisplayNumber, SymbolIntro,
+-- InstanceMacro, AtomEnvelope, and RegistryV2.
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Semtex.Json
   ( -- $instances
-    -- * Re-exports for convenience
-    -- | This module provides 'ToJSON' and 'FromJSON' instances for
-    -- the core semtex types. Import it to bring these instances into scope.
   ) where
 
 import Data.Aeson
   ( FromJSON(..)
+  , FromJSONKey(..)
+  , FromJSONKeyFunction(..)
   , ToJSON(..)
+  , ToJSONKey(..)
+  , ToJSONKeyFunction(..)
   , object
   , withObject
+  , withText
   , (.!=)
   , (.:)
   , (.:?)
@@ -29,36 +29,172 @@ import Data.Aeson
   )
 import Data.Aeson.Key     (fromText, toText)
 import Data.Aeson.KeyMap  (delete, toList)
+import qualified Data.Aeson.Encoding as E
 import qualified Data.Map.Strict  as Map
+import qualified Data.Set         as Set
+import qualified Data.Text        as T
 
 import Semtex.Types
 
 -- $instances
--- All instances in this module are orphans with respect to 'Semtex.Types',
--- which is intentional: the types module stays aeson-free and the mapping
--- is expressed exactly once here.
+-- All instances in this module are orphans with respect to 'Semtex.Types'.
 
 -- ---------------------------------------------------------------------------
--- Concept
+-- Uid
 -- ---------------------------------------------------------------------------
 
--- | Serialises a 'Concept' to the canonical JSON object.
---
--- Field mapping (Haskell -> JSON):
---
--- > conceptId           -> "concept_id"
--- > conceptName         -> "name"
--- > conceptFile         -> "file"
--- > conceptDepends      -> "depends"
--- > conceptUses         -> "uses"
--- > conceptAxioms       -> "axioms"
--- > conceptImplements   -> "implements"
--- > conceptStacksRefs   -> "stacks_refs"
--- > conceptNlabRefs     -> "nlab_refs"
--- > conceptTerms        -> "terms_introduced"
--- > conceptSymbols      -> "symbols_introduced"
--- > conceptLabels       -> "labels"
--- > conceptBackRefs     -> "back_refs"
+instance ToJSON Uid where
+  toJSON (Uid t) = toJSON t
+
+instance FromJSON Uid where
+  parseJSON = withText "Uid" (pure . Uid)
+
+instance ToJSONKey Uid where
+  toJSONKey = ToJSONKeyText (fromText . unUid) (E.text . unUid)
+
+instance FromJSONKey Uid where
+  fromJSONKey = FromJSONKeyText Uid
+
+-- ---------------------------------------------------------------------------
+-- DisplayNumber
+-- ---------------------------------------------------------------------------
+
+instance ToJSON DisplayNumber where
+  toJSON (DisplayNumber t) = toJSON t
+
+instance FromJSON DisplayNumber where
+  parseJSON = withText "DisplayNumber" (pure . DisplayNumber)
+
+-- ---------------------------------------------------------------------------
+-- AtomType
+-- ---------------------------------------------------------------------------
+
+instance ToJSON AtomType where
+  toJSON AtomParagraph   = toJSON ("paragraph" :: T.Text)
+  toJSON AtomDefinition  = toJSON ("definition" :: T.Text)
+  toJSON AtomTheorem     = toJSON ("theorem" :: T.Text)
+  toJSON AtomProposition = toJSON ("proposition" :: T.Text)
+  toJSON AtomLemma       = toJSON ("lemma" :: T.Text)
+  toJSON AtomCorollary   = toJSON ("corollary" :: T.Text)
+  toJSON AtomRemark      = toJSON ("remark" :: T.Text)
+  toJSON AtomExample     = toJSON ("example" :: T.Text)
+  toJSON AtomProof       = toJSON ("proof" :: T.Text)
+
+instance FromJSON AtomType where
+  parseJSON = withText "AtomType" $ \t -> case t of
+    "paragraph"   -> pure AtomParagraph
+    "definition"  -> pure AtomDefinition
+    "theorem"     -> pure AtomTheorem
+    "proposition" -> pure AtomProposition
+    "lemma"       -> pure AtomLemma
+    "corollary"   -> pure AtomCorollary
+    "remark"      -> pure AtomRemark
+    "example"     -> pure AtomExample
+    "proof"       -> pure AtomProof
+    _             -> fail ("unknown AtomType: " ++ T.unpack t)
+
+-- ---------------------------------------------------------------------------
+-- SymbolIntro
+-- ---------------------------------------------------------------------------
+
+instance ToJSON SymbolIntro where
+  toJSON si = object
+    [ "macro_name" .= introMacroName si
+    , "content"    .= introContent si
+    ]
+
+instance FromJSON SymbolIntro where
+  parseJSON = withObject "SymbolIntro" $ \o ->
+    SymbolIntro
+      <$> o .: "macro_name"
+      <*> o .: "content"
+
+-- ---------------------------------------------------------------------------
+-- InstanceMacro
+-- ---------------------------------------------------------------------------
+
+instance ToJSON InstanceMacro where
+  toJSON im = object
+    [ "name"        .= imName im
+    , "nargs"       .= imNArgs im
+    , "body"        .= imBody im
+    , "type_macro"  .= imTypeMacro im
+    ]
+
+instance FromJSON InstanceMacro where
+  parseJSON = withObject "InstanceMacro" $ \o ->
+    InstanceMacro
+      <$> o .:  "name"
+      <*> o .:? "nargs"
+      <*> o .:  "body"
+      <*> o .:? "type_macro"
+
+-- ---------------------------------------------------------------------------
+-- Atom
+-- ---------------------------------------------------------------------------
+
+instance ToJSON Atom where
+  toJSON a = object
+    [ "uid"              .= atomUid a
+    , "display_number"   .= atomDisplayNumber a
+    , "type"             .= atomType a
+    , "content"          .= atomContent a
+    , "file"             .= atomFile a
+    , "concept_id"       .= atomConceptId a
+    , "symbol_intros"    .= atomSymbolIntros a
+    , "symbol_usages"    .= Set.toList (atomSymbolUsages a)
+    , "term_intros"      .= atomTermIntros a
+    , "depends"          .= atomDepends a
+    , "implements"       .= atomImplements a
+    , "axioms"           .= atomAxioms a
+    , "stacks_refs"      .= atomStacksRefs a
+    , "nlab_refs"        .= atomNlabRefs a
+    , "labels"           .= atomLabels a
+    , "back_refs"        .= atomBackRefs a
+    , "section_path"     .= atomSectionPath a
+    ]
+
+instance FromJSON Atom where
+  parseJSON = withObject "Atom" $ \o ->
+    Atom
+      <$> o .:? "uid"
+      <*> o .:? "display_number"
+      <*> o .:  "type"
+      <*> o .:  "content"
+      <*> o .:  "file"
+      <*> o .:? "concept_id"
+      <*> o .:? "symbol_intros"    .!= []
+      <*> (Set.fromList <$> (o .:? "symbol_usages" .!= []))
+      <*> o .:? "term_intros"      .!= []
+      <*> o .:? "depends"          .!= []
+      <*> o .:? "implements"       .!= Map.empty
+      <*> o .:? "axioms"           .!= []
+      <*> o .:? "stacks_refs"      .!= []
+      <*> o .:? "nlab_refs"        .!= []
+      <*> o .:? "labels"           .!= []
+      <*> o .:? "back_refs"        .!= []
+      <*> o .:? "section_path"     .!= []
+
+-- ---------------------------------------------------------------------------
+-- AtomEnvelope
+-- ---------------------------------------------------------------------------
+
+instance ToJSON AtomEnvelope where
+  toJSON e = object
+    [ "file"  .= aeFile e
+    , "atoms" .= aeAtoms e
+    ]
+
+instance FromJSON AtomEnvelope where
+  parseJSON = withObject "AtomEnvelope" $ \o ->
+    AtomEnvelope
+      <$> o .: "file"
+      <*> o .: "atoms"
+
+-- ---------------------------------------------------------------------------
+-- Concept (v1)
+-- ---------------------------------------------------------------------------
+
 instance ToJSON Concept where
   toJSON c = object
     [ "concept_id"         .= conceptId         c
@@ -76,10 +212,6 @@ instance ToJSON Concept where
     , "back_refs"          .= conceptBackRefs    c
     ]
 
--- | Parses a 'Concept' from the canonical JSON object.
---
--- The @back_refs@ field is optional and defaults to @[]@; this allows
--- reading envelopes produced before the back-reference pass has run.
 instance FromJSON Concept where
   parseJSON = withObject "Concept" $ \o ->
     Concept
@@ -98,20 +230,15 @@ instance FromJSON Concept where
       <*> o .:? "back_refs" .!= []
 
 -- ---------------------------------------------------------------------------
--- Envelope
+-- Envelope (v1)
 -- ---------------------------------------------------------------------------
 
--- | Serialises an 'Envelope' to a two-field JSON object.
---
--- > envelopeFile     -> "file"
--- > envelopeConcepts -> "concepts"
 instance ToJSON Envelope where
   toJSON e = object
     [ "file"     .= envelopeFile     e
     , "concepts" .= envelopeConcepts e
     ]
 
--- | Parses an 'Envelope' from a JSON object with @file@ and @concepts@ keys.
 instance FromJSON Envelope where
   parseJSON = withObject "Envelope" $ \o ->
     Envelope
@@ -119,18 +246,9 @@ instance FromJSON Envelope where
       <*> o .: "concepts"
 
 -- ---------------------------------------------------------------------------
--- SymbolEntry
+-- SymbolEntry (v1)
 -- ---------------------------------------------------------------------------
 
--- | Serialises a 'SymbolEntry' to a JSON object with dynamic language keys.
---
--- The fixed @concept@ key holds the owning 'ConceptId'.  Every entry in
--- 'symLangs' becomes an additional top-level key whose name is the language
--- string (e.g. @\"haskell\"@, @\"agda\"@) and whose value is the module list.
---
--- Example output:
---
--- > {"concept": "functor", "haskell": ["Cat.Functor"], "agda": ["Cat.Functor"]}
 instance ToJSON SymbolEntry where
   toJSON se =
     let fixedPair  = [ "concept" .= symConcept se ]
@@ -139,14 +257,9 @@ instance ToJSON SymbolEntry where
                      ]
     in  object (fixedPair ++ langPairs)
 
--- | Parses a 'SymbolEntry' from a JSON object.
---
--- Consumes the mandatory @concept@ key, then treats every remaining key as a
--- language entry whose value must be a list of module strings.
 instance FromJSON SymbolEntry where
   parseJSON = withObject "SymbolEntry" $ \o -> do
     cid  <- o .: "concept"
-    -- Remove the "concept" key before iterating so we only see language keys.
     let langPairs = toList (delete "concept" o)
     langs <- traverse parseLangPair langPairs
     pure SymbolEntry
@@ -156,26 +269,13 @@ instance FromJSON SymbolEntry where
     where
       parseLangPair (k, v) = do
         mods <- parseJSON v
-        -- Recover the Text representation of the aeson Key.
         let lang = toText k
         pure (lang, mods)
 
 -- ---------------------------------------------------------------------------
--- Registry
+-- Registry (v1)
 -- ---------------------------------------------------------------------------
 
--- | Serialises a 'Registry' to the canonical @registry.json@ object.
---
--- Field mapping (Haskell -> JSON):
---
--- > regVersion       -> "version"
--- > regGenerated     -> "generated"
--- > regConcepts      -> "concepts"
--- > regDependencyDag -> "dependency_dag"
--- > regTopoOrder     -> "topological_order"
--- > regStacksIndex   -> "stacks_index"
--- > regNlabIndex     -> "nlab_index"
--- > regSymbolTable   -> "symbol_table"
 instance ToJSON Registry where
   toJSON r = object
     [ "version"          .= regVersion       r
@@ -188,7 +288,6 @@ instance ToJSON Registry where
     , "symbol_table"     .= regSymbolTable   r
     ]
 
--- | Parses a 'Registry' from the canonical @registry.json@ object.
 instance FromJSON Registry where
   parseJSON = withObject "Registry" $ \o ->
     Registry
@@ -200,3 +299,41 @@ instance FromJSON Registry where
       <*> o .: "stacks_index"
       <*> o .: "nlab_index"
       <*> o .: "symbol_table"
+
+-- ---------------------------------------------------------------------------
+-- RegistryV2
+-- ---------------------------------------------------------------------------
+
+instance ToJSON RegistryV2 where
+  toJSON r = object
+    [ "version"          .= reg2Version        r
+    , "generated"        .= reg2Generated      r
+    , "next_uid"         .= reg2NextUid        r
+    , "atoms"            .= reg2Atoms          r
+    , "concepts"         .= reg2Concepts       r
+    , "instance_macros"  .= reg2InstanceMacros r
+    , "type_macros"      .= Set.toList (reg2TypeMacros r)
+    , "symbol_deps"      .= reg2SymbolDeps     r
+    , "back_refs"        .= reg2BackRefs       r
+    , "concept_dag"      .= reg2ConceptDag     r
+    , "topological_order".= reg2TopoOrder      r
+    , "stacks_index"     .= reg2StacksIndex    r
+    , "nlab_index"       .= reg2NlabIndex      r
+    ]
+
+instance FromJSON RegistryV2 where
+  parseJSON = withObject "RegistryV2" $ \o ->
+    RegistryV2
+      <$> o .:  "version"
+      <*> o .:  "generated"
+      <*> o .:  "next_uid"
+      <*> o .:  "atoms"
+      <*> o .:? "concepts"         .!= Map.empty
+      <*> o .:? "instance_macros"  .!= Map.empty
+      <*> (Set.fromList <$> (o .:? "type_macros" .!= []))
+      <*> o .:? "symbol_deps"      .!= Map.empty
+      <*> o .:? "back_refs"        .!= Map.empty
+      <*> o .:? "concept_dag"      .!= Map.empty
+      <*> o .:? "topological_order".!= []
+      <*> o .:? "stacks_index"     .!= Map.empty
+      <*> o .:? "nlab_index"       .!= Map.empty

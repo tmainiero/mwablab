@@ -1,15 +1,21 @@
 -- | Registry merge pipeline: collect @.semtex.json@ envelopes, validate
 -- the dependency graph, topo-sort, compute back-references, build indices,
 -- and emit @registry.json@.
+--
+-- v2 adds atom-level merging with UIDs, symbol tracking, and auto-inferred
+-- dependencies alongside the legacy concept pipeline.
 module Semtex.Merge
-  ( -- * Merge pipeline
+  ( -- * Merge pipeline (v1)
     loadAndMerge
+    -- * Merge pipeline (v2 atoms)
+  , mergeAtoms
   ) where
 
 import Data.Aeson           (eitherDecodeFileStrict, encode)
 import Data.Graph           (SCC(..), stronglyConnComp)
 import Data.List            (isSuffixOf, sort)
 import Data.Map.Strict      (Map)
+import Data.Set             (Set)
 import Data.Text            (Text)
 import Data.Time            (getCurrentTime)
 import System.Directory     (doesDirectoryExist, doesFileExist, listDirectory)
@@ -19,10 +25,14 @@ import System.IO            (hPutStrLn, stderr)
 
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Map.Strict      as Map
+import qualified Data.Set             as Set
 import qualified Data.Text            as T
 
 import Semtex.Json   ()
 import Semtex.Types
+import Semtex.Uid           (assignUids, initialUid)
+import Semtex.SymbolTrack   (buildSymbolTable,
+                             scanUsages, inferDependencies, validateSymbols)
 
 -- ---------------------------------------------------------------------------
 -- Public entry point
@@ -249,3 +259,137 @@ lastOf :: [String] -> String
 lastOf []     = ""
 lastOf [x]    = x
 lastOf (_:xs) = lastOf xs
+
+-- ---------------------------------------------------------------------------
+-- v2 atom-level merge
+-- ---------------------------------------------------------------------------
+
+-- | Merge a list of atoms into a v2 registry.
+--
+-- Steps:
+--   1. Assign UIDs to atoms that don't have one.
+--   2. Build the symbol table.
+--   3. Scan for symbol usages.
+--   4. Infer dependency edges.
+--   5. Validate (newmath on type macros, duplicate instances).
+--   6. Compute back-references.
+--   7. Topological sort.
+--   8. Build and write the registry.
+mergeAtoms
+  :: FilePath          -- ^ Output directory for registry.json
+  -> Set Text          -- ^ Known type macro names
+  -> Set Text          -- ^ Known instance macro names
+  -> Maybe RegistryV2  -- ^ Previous registry (for UID continuity)
+  -> [Atom]            -- ^ All atoms from all files
+  -> IO RegistryV2
+mergeAtoms outDir typeMacros instanceNames mPrevReg atoms = do
+  -- 1. Assign UIDs.
+  let startUid = case mPrevReg of
+        Just prev -> reg2NextUid prev
+        Nothing   -> initialUid
+  let (nextUidVal, atomsWithUids) = assignUids startUid atoms
+
+  -- 2. Build symbol table.
+  let symTable = buildSymbolTable typeMacros instanceNames atomsWithUids
+
+  -- 3. Scan usages.
+  let atomsWithUsages = scanUsages instanceNames atomsWithUids
+
+  -- 4. Validate.
+  let errors = validateSymbols typeMacros atomsWithUsages
+  mapM_ (\err -> hPutStrLn stderr ("error: " ++ show err)) errors
+  if not (null errors)
+    then do
+      hPutStrLn stderr "fatal: symbol validation errors, aborting"
+      exitFailure
+    else pure ()
+
+  -- 5. Infer dependencies.
+  let depEdges = inferDependencies symTable atomsWithUsages
+
+  -- 6. Compute back-references.
+  let backRefs :: Map Uid [Uid]
+      backRefs = Map.fromListWith (++)
+        [ (dep, [uid])
+        | (uid, deps) <- Map.toList depEdges
+        , dep <- deps
+        ]
+
+  let atomsWithBackRefs = map (\a ->
+        case atomUid a of
+          Just uid -> a { atomBackRefs = Map.findWithDefault [] uid backRefs }
+          Nothing  -> a
+        ) atomsWithUsages
+
+  -- 7. Topological sort on atom UIDs.
+  let sccs = stronglyConnComp
+        [ (uid, uid, deps)
+        | a <- atomsWithBackRefs
+        , Just uid <- [atomUid a]
+        , let deps = Map.findWithDefault [] uid depEdges
+        ]
+      topoOrder = [n | AcyclicSCC n <- sccs]
+      atomCycles = [ns | CyclicSCC ns <- sccs]
+
+  mapM_ (\ns -> case ns of
+    [] -> pure ()
+    (Uid n : _) -> hPutStrLn stderr
+      ("warning: cycle in atom deps involving '" ++ T.unpack n ++ "'")
+    ) atomCycles
+
+  -- 8. Build atom map.
+  let atomMap :: Map Uid Atom
+      atomMap = Map.fromList
+        [ (uid, a)
+        | a <- atomsWithBackRefs
+        , Just uid <- [atomUid a]
+        ]
+
+  -- 9. Build stacks/nlab indices at atom level.
+  let stacksIdx = Map.fromList
+        [ (tag, uid)
+        | a <- atomsWithBackRefs
+        , Just uid <- [atomUid a]
+        , tag <- atomStacksRefs a
+        ]
+      nlabIdx = Map.fromList
+        [ (tag, uid)
+        | a <- atomsWithBackRefs
+        , Just uid <- [atomUid a]
+        , tag <- atomNlabRefs a
+        ]
+
+  -- 10. Build legacy concept structures for backward compat.
+  let conceptDag = Map.empty  -- TODO: extract from concept-level deps
+      conceptMap = Map.empty  -- TODO: rebuild from atoms
+      imMap = Map.fromList
+        [ (imName im, im)
+        | name <- Set.toList instanceNames
+        , let im = InstanceMacro name Nothing "" Nothing
+        ]
+
+  now <- getCurrentTime
+  let registry = RegistryV2
+        { reg2Version = 2
+        , reg2Generated = now
+        , reg2NextUid = nextUidVal
+        , reg2Atoms = atomMap
+        , reg2Concepts = conceptMap
+        , reg2InstanceMacros = imMap
+        , reg2TypeMacros = typeMacros
+        , reg2SymbolDeps = depEdges
+        , reg2BackRefs = backRefs
+        , reg2ConceptDag = conceptDag
+        , reg2TopoOrder = topoOrder
+        , reg2StacksIndex = stacksIdx
+        , reg2NlabIndex = nlabIdx
+        }
+
+  -- Write registry.
+  let regPath = outDir </> "registry.json"
+  BL.writeFile regPath (encode registry)
+  putStrLn ("  registry v2: " ++ regPath
+            ++ " (" ++ show (Map.size atomMap) ++ " atoms, "
+            ++ show (length topoOrder) ++ " in topo order)")
+
+  pure registry

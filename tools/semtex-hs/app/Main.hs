@@ -1,16 +1,13 @@
 -- | CLI entry point for semtex — wires up subcommands via optparse-applicative.
 --
--- Exposes five subcommands:
+-- Exposes six subcommands:
 --
 --   * @extract FILE [FILE ...]@ — extract concept graphs from TeX files
 --   * @merge DIR@ — merge per-file .semtex.json into registry.json
 --   * @validate REGISTRY [PROJECT_ROOT]@ — validate a registry
 --   * @mathjax PREAMBLE@ — generate MathJax macro configuration
 --   * @graph REGISTRY@ — emit Graphviz DOT from registry
---
--- Each subcommand dispatches to its corresponding module
--- ('Semtex.Extract', 'Semtex.Merge', 'Semtex.Validate', 'Semtex.MathJax',
--- 'Semtex.Graph').
+--   * @site SPECDIR OUTDIR@ — generate static HTML doc site
 module Main (main) where
 
 import Options.Applicative
@@ -20,6 +17,7 @@ import Semtex.Graph (runGraph)
 import Semtex.Merge (loadAndMerge)
 import Semtex.Validate (runValidate)
 import Semtex.MathJax (runMathJax)
+import Semtex.Site (runSite)
 
 -- | Sum type for all supported commands.
 data Command
@@ -28,10 +26,9 @@ data Command
   | Validate FilePath (Maybe FilePath)
   | MathJax FilePath
   | Graph FilePath
+  | Site FilePath FilePath
 
 -- | Parser for the full CLI.
---
--- Produces a 'Command' that determines which subcommand was invoked.
 commandParser :: ParserInfo Command
 commandParser = info (helper <*> cmds) $
   fullDesc
@@ -44,6 +41,7 @@ commandParser = info (helper <*> cmds) $
       <> command "validate" (info validateCmd (progDesc "Validate registry"))
       <> command "mathjax"  (info mathjaxCmd  (progDesc "Generate MathJax macro config"))
       <> command "graph"    (info graphCmd    (progDesc "Emit Graphviz DOT from registry"))
+      <> command "site"     (info siteCmd     (progDesc "Generate static HTML doc site"))
 
     extractCmd  = Extract <$> some (argument str (metavar "FILE..."))
     mergeCmd    = Merge <$> argument str (metavar "DIR")
@@ -52,10 +50,11 @@ commandParser = info (helper <*> cmds) $
       <*> optional (argument str (metavar "PROJECT_ROOT"))
     mathjaxCmd  = MathJax <$> argument str (metavar "PREAMBLE")
     graphCmd    = Graph <$> argument str (metavar "REGISTRY")
+    siteCmd     = Site
+      <$> argument str (metavar "SPECDIR")
+      <*> argument str (metavar "OUTDIR")
 
 -- | Main entry point.
---
--- Parses command-line arguments and dispatches to the appropriate handler.
 main :: IO ()
 main = do
   cmd <- execParser commandParser
@@ -65,3 +64,4 @@ main = do
     Validate reg root -> runValidate reg root
     MathJax preamble  -> runMathJax preamble
     Graph reg         -> runGraph reg
+    Site specDir out  -> runSite specDir out

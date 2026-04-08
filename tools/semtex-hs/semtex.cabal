@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            semtex
-version:         0.1.0.0
+version:         0.2.0.0
 synopsis:        Semantic TeX preprocessor for mwablab concept graphs
 license:         BSD-3-Clause
 build-type:      Simple
@@ -20,11 +20,15 @@ library semtex-lib
     Semtex.Types
     Semtex.Extract
     Semtex.Extract.Parser
+    Semtex.Extract.Atoms
     Semtex.Graph
     Semtex.Merge
     Semtex.Validate
     Semtex.MathJax
     Semtex.Json
+    Semtex.Uid
+    Semtex.SymbolTrack
+    Semtex.Site
 
   build-depends:
     base >= 4.18 && < 5,
@@ -35,6 +39,8 @@ library semtex-lib
     filepath,
     megaparsec >= 9.6 && < 9.8,
     optparse-applicative >= 0.18 && < 0.19,
+    process,
+    temporary,
     text,
     time
 

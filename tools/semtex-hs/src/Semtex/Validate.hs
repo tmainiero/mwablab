@@ -1,18 +1,23 @@
 -- | Registry validation — the @validate@ command.
 --
--- Loads a @registry.json@ and performs two checks:
+-- Loads a @registry.json@ and performs checks:
 --
 --   1. Every @implements@ path resolves to an existing file on disk.
 --   2. No Stacks Project tag is cited by more than one concept.
+--   3. (v2) No @\\newmath@ wraps a type macro directly.
+--   4. (v2) No duplicate instance macro definitions.
 module Semtex.Validate
   ( -- * Validation
     runValidate
+    -- * v2 validation
+  , validateAtoms
   ) where
 
 import Control.Monad        (forM, forM_)
 import Data.List            (intercalate, nub)
 import Data.Map.Strict      (Map)
 import Data.Maybe           (fromMaybe)
+import Data.Set             (Set)
 import Data.Text            (Text)
 import System.Directory     (doesFileExist)
 import System.Exit          (exitFailure)
@@ -25,6 +30,7 @@ import qualified Data.Text        as T
 
 import Semtex.Json   ()
 import Semtex.Types
+import Semtex.SymbolTrack (validateSymbols)
 
 -- ---------------------------------------------------------------------------
 -- Entry point
@@ -202,3 +208,57 @@ checkTagUniqueness concepts =
             <> "]"
           ]
       | otherwise = []
+
+-- ---------------------------------------------------------------------------
+-- v2 atom-level validation
+-- ---------------------------------------------------------------------------
+
+-- | Validate atoms: check symbol constraints and implements files.
+--
+-- Returns (errors, warnings).
+validateAtoms
+  :: FilePath    -- ^ Project root for resolving implements paths
+  -> Set Text    -- ^ Known type macro names
+  -> [Atom]      -- ^ All atoms
+  -> IO ([Text], [Text])
+validateAtoms projectRoot typeMacros atoms = do
+  -- Symbol validation (blocking errors).
+  let symErrors = validateSymbols typeMacros atoms
+      symErrTexts = map (T.pack . show) symErrors
+
+  -- Implements file validation at atom level.
+  (implErrors, implWarnings) <- checkAtomImplFiles projectRoot atoms
+
+  pure (symErrTexts ++ implErrors, implWarnings)
+
+-- | Check implements entries for all atoms.
+checkAtomImplFiles :: FilePath -> [Atom] -> IO ([Text], [Text])
+checkAtomImplFiles projectRoot atoms = do
+  pairs <- mapM (checkAtomImpl projectRoot) atoms
+  let (errLists, warnLists) = unzip pairs
+  pure (concat errLists, concat warnLists)
+
+-- | Check implements entries for a single atom.
+checkAtomImpl :: FilePath -> Atom -> IO ([Text], [Text])
+checkAtomImpl projectRoot atom = do
+  let impls = Map.toList (atomImplements atom)
+      label = case atomConceptId atom of
+        Just cid -> "atom in concept '" <> cid <> "'"
+        Nothing  -> "atom in " <> T.pack (atomFile atom)
+  pairs <- forM impls $ \(lang, mods) ->
+    case Map.lookup lang langRoots of
+      Nothing -> pure ([], ["  " <> label <> ": unknown language '" <> lang <> "'"])
+      Just langRoot -> do
+        errs <- forM mods $ \modName -> do
+          let relPath = moduleToPath lang modName
+              fullPath = projectRoot </> langRoot </> relPath
+          exists <- doesFileExist fullPath
+          if exists
+            then pure []
+            else pure
+              [ label <> ": " <> lang <> " module '" <> modName
+                <> "' -> file not found: " <> T.pack fullPath
+              ]
+        pure (concat errs, [])
+  let (errLists, warnLists) = unzip pairs
+  pure (concat errLists, concat warnLists)
