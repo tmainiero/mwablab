@@ -25,6 +25,7 @@ import Prelude hiding (id, (.))
 import Data.Kind (Type)
 
 import Cat.Category (Category(..))
+import Cat.NaturalTransformation (NatTrans(..), vertComp)
 
 --------------------------------------------------------------------------------
 -- Natural isomorphisms
@@ -33,20 +34,20 @@ import Cat.Category (Category(..))
 -- | A natural isomorphism \(\alpha : F \xRightarrow{\sim} G\) between functors
 -- @f@ and @g@ landing in a category with morphisms @cat2@.
 --
--- The record stores a forward family and a backward family of morphisms.
--- Instances must satisfy:
+-- Structurally, a natural isomorphism is a pair of natural transformations
+-- (forward and backward) that are mutual inverses. Instances must satisfy:
 --
--- [Left inverse]  @compose (niBackward iso) (niForward iso) = id@
--- [Right inverse] @compose (niForward iso) (niBackward iso) = id@
--- [Naturality]    Both @niForward@ and @niBackward@ satisfy the naturality
---                 condition (see 'Cat.NaturalTransformation.NatTrans').
+-- [Left inverse]  @vertComp (niBackward iso) (niForward iso) = idNat@
+-- [Right inverse] @vertComp (niForward iso) (niBackward iso) = idNat@
+-- [Naturality]    Both 'niForward' and 'niBackward' are natural transformations
+--                 (see 'Cat.NaturalTransformation.NatTrans').
 --
 -- Reference: nLab, natural+isomorphism.
 data NatIso (cat2 :: k2 -> k2 -> Type) (f :: k1 -> k2) (g :: k1 -> k2) = NatIso
-  { niForward  :: forall (a :: k1). cat2 (f a) (g a)
-    -- ^ The forward component \(\alpha_a : F(a) \to G(a)\).
-  , niBackward :: forall (a :: k1). cat2 (g a) (f a)
-    -- ^ The backward component \(\alpha^{-1}_a : G(a) \to F(a)\).
+  { niForward  :: NatTrans cat2 f g
+    -- ^ The forward natural transformation \(\alpha : F \Rightarrow G\).
+  , niBackward :: NatTrans cat2 g f
+    -- ^ The backward natural transformation \(\alpha^{-1} : G \Rightarrow F\).
   }
 
 --------------------------------------------------------------------------------
@@ -58,7 +59,7 @@ data NatIso (cat2 :: k2 -> k2 -> Type) (f :: k1 -> k2) (g :: k1 -> k2) = NatIso
 --
 -- Reference: nLab, natural+isomorphism.
 idNatIso :: Category cat2 => NatIso cat2 f f
-idNatIso = NatIso id id
+idNatIso = NatIso (NatTrans id) (NatTrans id)
 
 -- | Composition of natural isomorphisms.
 -- Given \(\alpha : F \xRightarrow{\sim} G\) and \(\beta : G \xRightarrow{\sim} H\),
@@ -73,8 +74,8 @@ idNatIso = NatIso id id
 composeNatIso :: Category cat2
               => NatIso cat2 g h -> NatIso cat2 f g -> NatIso cat2 f h
 composeNatIso beta alpha = NatIso
-  { niForward  = compose (niForward beta) (niForward alpha)
-  , niBackward = compose (niBackward alpha) (niBackward beta)
+  { niForward  = vertComp (niForward beta) (niForward alpha)
+  , niBackward = vertComp (niBackward alpha) (niBackward beta)
   }
 
 -- | Inverse of a natural isomorphism.

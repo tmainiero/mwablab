@@ -62,11 +62,16 @@
 -- nLab: braided+monoidal+category.
 module Cat.BraidedMonoidal
   ( BraidedData(..)
+    -- * Projections (forgetful functors)
+  , braidedCat
+  , braidedTensor
   ) where
 
 import Prelude hiding (id, (.))
 import Data.Kind (Type)
 
+import Cat.Category (CategoryData)
+import Cat.Bifunctor (BifunctorData)
 import Cat.Monoidal (MonoidalData(..))
 
 -- | A braided monoidal category reified as a record.
@@ -93,3 +98,18 @@ data BraidedData
   , braidingBwd :: forall a b. hom (tensor b a) (tensor a b)
     -- ^ The inverse braiding: \(\sigma^{-1}_{A,B} : B \otimes A \to A \otimes B\).
   }
+
+-- | Extract the underlying category.
+-- Projection corresponding to the forgetful functor BrMon -> Cat.
+--
+-- nLab: braided+monoidal+category.
+braidedCat :: BraidedData hom t u -> CategoryData hom
+braidedCat bd = monCat (braidedMonoidal bd)
+
+-- | Extract the tensor bifunctor.
+-- Projection corresponding to the forgetful functor BrMon -> Cat
+-- composed with the tensor extraction.
+--
+-- nLab: braided+monoidal+category.
+braidedTensor :: BraidedData hom t u -> BifunctorData hom hom hom t
+braidedTensor bd = monTensor (braidedMonoidal bd)

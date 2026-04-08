@@ -22,12 +22,19 @@
 -- nLab: symmetric+monoidal+category.
 module Cat.SymmetricMonoidal
   ( SymmetricData(..)
+    -- * Projections (forgetful functors)
+  , symmetricMonoidal
+  , symmetricCat
+  , symmetricTensor
   ) where
 
 import Prelude hiding (id, (.))
 import Data.Kind (Type)
 
+import Cat.Category (CategoryData)
+import Cat.Bifunctor (BifunctorData)
 import Cat.BraidedMonoidal (BraidedData(..))
+import Cat.Monoidal (MonoidalData(..))
 
 -- | A symmetric monoidal category reified as a record.
 --
@@ -51,3 +58,25 @@ data SymmetricData
     -- ^ The underlying braided monoidal category, whose braiding
     -- additionally satisfies \(\sigma_{B,A} \circ \sigma_{A,B} = \mathrm{id}\).
   }
+
+-- | Extract the underlying monoidal structure.
+-- Projection corresponding to the forgetful functor SMon -> Mon.
+--
+-- nLab: symmetric+monoidal+category.
+symmetricMonoidal :: SymmetricData hom t u -> MonoidalData hom t u
+symmetricMonoidal sd = braidedMonoidal (symmetricBraided sd)
+
+-- | Extract the underlying category.
+-- Projection corresponding to the forgetful functor SMon -> Cat.
+--
+-- nLab: symmetric+monoidal+category.
+symmetricCat :: SymmetricData hom t u -> CategoryData hom
+symmetricCat sd = monCat (braidedMonoidal (symmetricBraided sd))
+
+-- | Extract the tensor bifunctor.
+-- Projection corresponding to the forgetful functor SMon -> Cat
+-- composed with the tensor extraction.
+--
+-- nLab: symmetric+monoidal+category.
+symmetricTensor :: SymmetricData hom t u -> BifunctorData hom hom hom t
+symmetricTensor sd = monTensor (braidedMonoidal (symmetricBraided sd))
