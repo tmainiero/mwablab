@@ -13,7 +13,8 @@
 --
 -- subject to the pentagon and triangle coherence axioms.
 --
--- __Pentagon axiom__: For all objects \(A, B, C, D\), the following diagram commutes:
+-- __Pentagon axiom__: For all objects \(A, B, C, D\), the following diagram commutes
+-- (see src/spec/foundations/monoidal-category.tex for the tikz-cd diagram):
 --
 -- @
 --                          alpha_{A,B,C} * id_D
@@ -32,7 +33,8 @@
 -- @(id_A `bimap` alpha_{B,C,D}) . alpha_{A,B*C,D} . (alpha_{A,B,C} `bimap` id_D)@
 -- @= alpha_{A,B,C*D} . alpha_{A*B,C,D}@
 --
--- __Triangle axiom__: For all objects \(A, B\), the following diagram commutes:
+-- __Triangle axiom__: For all objects \(A, B\), the following diagram commutes
+-- (see src/spec/foundations/monoidal-category.tex for the tikz-cd diagram):
 --
 -- @
 --   (A*I)*B ---alpha_{A,I,B}---> A*(I*B)

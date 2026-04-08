@@ -8,7 +8,8 @@
 --
 -- called the __braiding__, subject to the two hexagon axioms.
 --
--- __Hexagon axiom 1__: For all objects \(A, B, C\), the following diagram commutes:
+-- __Hexagon axiom 1__: For all objects \(A, B, C\), the following diagram commutes
+-- (see src/spec/foundations/braided-monoidal.tex for the tikz-cd diagrams):
 --
 -- @
 --                             sigma_{A,B*C}

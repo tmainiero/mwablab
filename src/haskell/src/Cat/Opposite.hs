@@ -1,6 +1,6 @@
 -- | Opposite category \(\mathcal{C}^{\mathrm{op}}\).
 --
--- Mathematical definition (Stacks Project 001M):
+-- Mathematical definition (Stacks Project 001M; nLab: opposite+category):
 -- Given a category \(\mathcal{C}\), the opposite category \(\mathcal{C}^{\mathrm{op}}\)
 -- has the same objects, with
 -- \(\operatorname{Mor}_{\mathcal{C}^{\mathrm{op}}}(x, y) = \operatorname{Mor}_{\mathcal{C}}(y, x)\).

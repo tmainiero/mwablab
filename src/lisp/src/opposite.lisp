@@ -11,7 +11,7 @@
 ;;;; The opposite category is used to express contravariance uniformly:
 ;;;; a contravariant functor C → D is a covariant functor C^op → D.
 ;;;;
-;;;; Reference: Stacks Project, Tag 0014.
+;;;; Reference: Stacks Project, Tag 001M; nLab: opposite+category.
 
 (defun opposite-category (cat)
   "Construct the opposite category C^op from CAT.
@@ -23,7 +23,7 @@ g ∘^op f = f ∘ g  (composition in C)
 
 The involution (C^op)^op is isomorphic to C.
 
-Reference: Stacks Project, Tag 0014."
+Reference: Stacks Project, Tag 001M; nLab: opposite+category."
   (make-instance 'category
     :name (format nil "~A^op" (category-name cat))
     :objects (category-objects cat)
