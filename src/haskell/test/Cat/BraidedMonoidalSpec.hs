@@ -5,48 +5,21 @@ import Prelude hiding (id, (.))
 import Test.Tasty
 import Test.Tasty.QuickCheck
 
-import Cat.Category
-import Cat.Bifunctor
+import Cat.Category (Category(id), catCompose)
+import Cat.Bifunctor (bimap)
 import Cat.Monoidal
 import Cat.BraidedMonoidal
-import Cat.Examples ()  -- (->) instance
+import Cat.Examples.Monoidal (setProductMonoidal, setProductBraided)
 
 --------------------------------------------------------------------------------
--- The braided cartesian monoidal category (Set, (,), ())
+-- Aliases for readability
 --------------------------------------------------------------------------------
 
--- | The cartesian monoidal structure on Set (represented via ->).
---
--- nLab: cartesian+monoidal+category.
 setMonoidal :: MonoidalData (->) (,) ()
-setMonoidal = MonoidalData
-  { monCat = categoryDataFromClass
-  , monTensor = BifunctorData { bimap = \f g (a, b) -> (f a, g b) }
-  , monAssocFwd = \((a, b), c) -> (a, (b, c))
-  , monAssocBwd = \(a, (b, c)) -> ((a, b), c)
-  , monLeftUnitorFwd = \((), a) -> a
-  , monLeftUnitorBwd = \a -> ((), a)
-  , monRightUnitorFwd = \(a, ()) -> a
-  , monRightUnitorBwd = \a -> (a, ())
-  }
+setMonoidal = setProductMonoidal
 
--- | The braided structure on (Set, (,), ()) with swap as the braiding.
---
--- The cartesian product is symmetric, so the braiding is simply @swap@:
--- \(\sigma_{A,B}(a,b) = (b,a)\). Since swap is self-inverse,
--- @braidingBwd = braidingFwd@.
---
--- nLab: cartesian+monoidal+category, braided+monoidal+category.
 setBraided :: BraidedData (->) (,) ()
-setBraided = BraidedData
-  { braidedMonoidal = setMonoidal
-  , braidingFwd = \(a, b) -> (b, a)
-  , braidingBwd = \(a, b) -> (b, a)
-  }
-
---------------------------------------------------------------------------------
--- Helpers
---------------------------------------------------------------------------------
+setBraided = setProductBraided
 
 comp :: (b -> c) -> (a -> b) -> (a -> c)
 comp = catCompose (monCat setMonoidal)

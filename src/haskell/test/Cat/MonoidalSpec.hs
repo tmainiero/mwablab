@@ -6,40 +6,16 @@ import Test.Tasty
 import Test.Tasty.QuickCheck
 
 import Cat.Category
-import Cat.Bifunctor
+import Cat.Bifunctor (bimap)
 import Cat.Monoidal
-import Cat.Examples ()  -- (->) instance
+import Cat.Examples.Monoidal (setProductMonoidal)
 
 --------------------------------------------------------------------------------
--- The cartesian monoidal category (Set, (,), ())
+-- Aliases for readability
 --------------------------------------------------------------------------------
 
--- | The cartesian monoidal structure on Set (represented via ->).
---
--- * Tensor product: @(,)@ (cartesian product)
--- * Unit: @()@ (terminal object)
--- * Associator: @((a,b),c) <-> (a,(b,c))@
--- * Left unitor: @((),a) <-> a@
--- * Right unitor: @(a,()) <-> a@
---
--- This is the standard example of a monoidal category.
---
--- nLab: cartesian+monoidal+category.
 setMonoidal :: MonoidalData (->) (,) ()
-setMonoidal = MonoidalData
-  { monCat = categoryDataFromClass
-  , monTensor = BifunctorData { bimap = \f g (a, b) -> (f a, g b) }
-  , monAssocFwd = \((a, b), c) -> (a, (b, c))
-  , monAssocBwd = \(a, (b, c)) -> ((a, b), c)
-  , monLeftUnitorFwd = \((), a) -> a
-  , monLeftUnitorBwd = \a -> ((), a)
-  , monRightUnitorFwd = \(a, ()) -> a
-  , monRightUnitorBwd = \a -> (a, ())
-  }
-
---------------------------------------------------------------------------------
--- Helper: extract compose and bimap for readability
---------------------------------------------------------------------------------
+setMonoidal = setProductMonoidal
 
 comp :: (b -> c) -> (a -> b) -> (a -> c)
 comp = catCompose (monCat setMonoidal)

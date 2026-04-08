@@ -5,52 +5,21 @@ import Prelude hiding (id, (.))
 import Test.Tasty
 import Test.Tasty.QuickCheck
 
-import Cat.Category
-import Cat.Bifunctor
-import Cat.Monoidal
+import Cat.Category (catCompose)
+import Cat.Monoidal (MonoidalData(..))
 import Cat.BraidedMonoidal
 import Cat.SymmetricMonoidal
-import Cat.Examples ()  -- (->) instance
+import Cat.Examples.Monoidal (setProduct, setProductMonoidal)
 
 --------------------------------------------------------------------------------
--- The symmetric cartesian monoidal category (Set, (,), ())
+-- Aliases for readability
 --------------------------------------------------------------------------------
 
--- | The cartesian monoidal structure on Set (represented via ->).
---
--- nLab: cartesian+monoidal+category.
-setMonoidal :: MonoidalData (->) (,) ()
-setMonoidal = MonoidalData
-  { monCat = categoryDataFromClass
-  , monTensor = BifunctorData { bimap = \f g (a, b) -> (f a, g b) }
-  , monAssocFwd = \((a, b), c) -> (a, (b, c))
-  , monAssocBwd = \(a, (b, c)) -> ((a, b), c)
-  , monLeftUnitorFwd = \((), a) -> a
-  , monLeftUnitorBwd = \a -> ((), a)
-  , monRightUnitorFwd = \(a, ()) -> a
-  , monRightUnitorBwd = \a -> (a, ())
-  }
-
--- | The symmetric monoidal structure on (Set, (,), ()).
---
--- Since @swap . swap = id@, the cartesian braiding is symmetric.
---
--- nLab: cartesian+monoidal+category, symmetric+monoidal+category.
 setSymmetric :: SymmetricData (->) (,) ()
-setSymmetric = SymmetricData
-  { symmetricBraided = BraidedData
-    { braidedMonoidal = setMonoidal
-    , braidingFwd = \(a, b) -> (b, a)
-    , braidingBwd = \(a, b) -> (b, a)
-    }
-  }
-
---------------------------------------------------------------------------------
--- Helpers
---------------------------------------------------------------------------------
+setSymmetric = setProduct
 
 comp :: (b -> c) -> (a -> b) -> (a -> c)
-comp = catCompose (monCat setMonoidal)
+comp = catCompose (monCat setProductMonoidal)
 
 --------------------------------------------------------------------------------
 -- Tests
