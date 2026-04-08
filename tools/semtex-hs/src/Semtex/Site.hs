@@ -4,10 +4,12 @@
 -- | Doc site generation for semtex v2.
 --
 -- Pipeline: TeX -> preprocess (strip semtex macros, inject back-refs)
---           -> pandoc --mathml -> HTML
+--           -> pandoc --mathml --template -> HTML
 -- tikz-cd diagrams: pdflatex + pdf2svg -> SVG (fallback: placeholder)
 --
 -- The @site@ subcommand generates a static HTML site from TeX specs.
+-- Uses the pandoc template at @docs/templates/default.html@ and CSS
+-- from @docs/css/@ for consistent styling with dark mode and sidebar.
 module Semtex.Site
   ( -- * Site generation
     runSite
@@ -28,7 +30,8 @@ import Data.List           (isSuffixOf, sort)
 import Data.Map.Strict     (Map)
 import Data.Text           (Text)
 import System.Directory    (createDirectoryIfMissing, doesFileExist,
-                            listDirectory, doesDirectoryExist)
+                            listDirectory, doesDirectoryExist,
+                            copyFile)
 import System.Exit         (ExitCode(..))
 import System.FilePath     ((</>), takeBaseName, takeFileName)
 import System.IO           (hPutStrLn, stderr)
@@ -47,37 +50,73 @@ import Semtex.Types
 
 -- | Run the @site@ subcommand: generate a static HTML doc site.
 --
--- @specDir@ is the directory containing TeX files (e.g. @src/spec/@).
+-- @specDir@ is the directory containing TeX files (e.g. @src/spec/foundations/@).
 -- @outDir@ is the output directory (e.g. @docs/site/@).
+--
+-- Output structure:
+--
+-- > outDir/
+-- >   index.html
+-- >   foundations/
+-- >     category.html
+-- >     functor.html
+-- >     ...
+-- >   css/
+-- >     style.css
+-- >     theme.css
 runSite :: FilePath -> FilePath -> IO ()
 runSite specDir outDir = do
   createDirectoryIfMissing True outDir
+  createDirectoryIfMissing True (outDir </> "foundations")
+  createDirectoryIfMissing True (outDir </> "css")
+
+  -- Try to locate the project root by going up from specDir.
+  -- specDir is typically src/spec/foundations/, so project root is ../../..
+  let projectRoot = specDir </> ".." </> ".." </> ".."
 
   -- Try to load preamble for macro definitions.
-  let preamblePath = specDir </> "../preamble.tex"
+  let preamblePath = specDir </> ".." </> "preamble.tex"
   hasPreamble <- doesFileExist preamblePath
   preamble <- if hasPreamble
     then TIO.readFile preamblePath
     else do
-      -- Try specDir itself
       let alt = specDir </> "preamble.tex"
       altExists <- doesFileExist alt
       if altExists then TIO.readFile alt else pure ""
+
+  -- Locate the pandoc template and CSS assets.
+  let templatePath = projectRoot </> "docs" </> "templates" </> "default.html"
+      stylePath    = projectRoot </> "docs" </> "css" </> "style.css"
+      themePath    = projectRoot </> "docs" </> "css" </> "themes" </> "catppuccin.css"
+
+  hasTemplate <- doesFileExist templatePath
+  if hasTemplate
+    then putStrLn ("  using template: " ++ templatePath)
+    else hPutStrLn stderr ("  warning: template not found at " ++ templatePath)
+
+  -- Copy CSS assets to output directory.
+  copyAsset stylePath (outDir </> "css" </> "style.css")
+  copyAsset themePath (outDir </> "css" </> "theme.css")
 
   -- Find all .tex files recursively.
   texFiles <- findTexFiles specDir
   putStrLn ("  found " ++ show (length texFiles) ++ " TeX files")
 
-  -- Process each file.
-  htmlFiles <- mapM (processTexFile preamble outDir) texFiles
+  -- Process each file using the pandoc template.
+  htmlFiles <- mapM (processTexFile preamble templatePath outDir) texFiles
 
-  -- Generate index page.
-  generateIndex outDir (concat htmlFiles)
-
-  -- Write CSS.
-  writeCss outDir
+  -- Generate index page using the template.
+  generateIndex templatePath outDir (concat htmlFiles)
 
   putStrLn ("  site generated: " ++ outDir)
+
+-- | Copy a file if the source exists; warn otherwise.
+copyAsset :: FilePath -> FilePath -> IO ()
+copyAsset src dst = do
+  exists <- doesFileExist src
+  if exists
+    then copyFile src dst
+    else hPutStrLn stderr ("  warning: asset not found: " ++ src)
 
 -- ---------------------------------------------------------------------------
 -- File discovery
@@ -106,10 +145,11 @@ findTexFiles dir = fmap sort (go dir)
 -- Per-file processing
 -- ---------------------------------------------------------------------------
 
--- | Process a single TeX file: preprocess -> pandoc -> HTML.
+-- | Process a single TeX file: preprocess -> pandoc with template -> HTML.
 -- Returns the list of generated HTML file paths (for the index).
-processTexFile :: Text -> FilePath -> FilePath -> IO [FilePath]
-processTexFile preamble outDir texPath = do
+-- Pages are written to @outDir/foundations/@ so that sidebar links work.
+processTexFile :: Text -> FilePath -> FilePath -> FilePath -> IO [FilePath]
+processTexFile preamble templatePath outDir texPath = do
   content <- TIO.readFile texPath
 
   -- Strip metadata macros; keep content macros for pandoc.
@@ -120,10 +160,10 @@ processTexFile preamble outDir texPath = do
   let withDiagrams = renderTikzDiagrams withoutWrapper
 
   let baseName = takeBaseName (takeFileName texPath)
-      htmlPath = outDir </> baseName ++ ".html"
+      htmlPath = outDir </> "foundations" </> baseName ++ ".html"
 
-  htmlContent <- texToHtml preamble withDiagrams baseName
-  TIO.writeFile htmlPath (wrapHtml baseName htmlContent)
+  htmlContent <- texToHtmlWithTemplate preamble templatePath withDiagrams baseName
+  TIO.writeFile htmlPath htmlContent
   putStrLn ("  generated: " ++ htmlPath)
   pure [htmlPath]
 
@@ -263,9 +303,38 @@ stripDocumentWrapper = T.unlines . filter (not . isWrapper) . T.lines
 -- Pandoc conversion
 -- ---------------------------------------------------------------------------
 
--- | Convert preprocessed TeX content to HTML via pandoc.
+-- | Convert preprocessed TeX content to HTML via pandoc with the site template.
+-- Uses --mathml for native MathML rendering and the pandoc template for
+-- consistent site styling (sidebar, dark mode toggle, CSS).
+texToHtmlWithTemplate :: Text -> FilePath -> Text -> String -> IO Text
+texToHtmlWithTemplate preamble templatePath texContent baseName = do
+  hasPandoc <- checkExecutable "pandoc"
+  hasTemplate <- doesFileExist templatePath
+  if hasPandoc && hasTemplate
+    then do
+      let macros = extractPandocMacros preamble
+          fullInput = macros <> "\n" <> texContent
+          title = humanTitle baseName
+      (exitCode, stdout, pandocStderr) <- readProcessWithExitCode "pandoc"
+        [ "--from=latex"
+        , "--to=html5"
+        , "--mathml"
+        , "--standalone"
+        , "--template=" ++ templatePath
+        , "--variable=title:" ++ title
+        , "--variable=root:../"
+        ]
+        (T.unpack fullInput)
+      case exitCode of
+        ExitSuccess -> pure (T.pack stdout)
+        ExitFailure _ -> do
+          hPutStrLn stderr ("  pandoc warning: " ++ pandocStderr)
+          texToHtml preamble texContent baseName >>= pure . wrapHtml baseName
+    else
+      texToHtml preamble texContent baseName >>= pure . wrapHtml baseName
+
+-- | Convert preprocessed TeX content to HTML body via pandoc (no template).
 -- Uses pandoc --mathml for native MathML rendering.
--- Injects preamble macro definitions so pandoc can expand custom macros.
 -- Falls back to raw TeX content if pandoc is not available.
 texToHtml :: Text -> Text -> String -> IO Text
 texToHtml preamble texContent _baseName = do
@@ -289,6 +358,16 @@ texToHtml preamble texContent _baseName = do
     else do
       hPutStrLn stderr "  pandoc not found, using fallback HTML rendering"
       pure (fallbackHtml texContent)
+
+-- | Convert a kebab-case basename to a human-readable title.
+humanTitle :: String -> String
+humanTitle = map (\c -> if c == '-' then ' ' else c) . capitalizeFirst
+  where
+    capitalizeFirst [] = []
+    capitalizeFirst (c:cs) = toUpper c : cs
+    toUpper c
+      | c >= 'a' && c <= 'z' = toEnum (fromEnum c - 32)
+      | otherwise = c
 
 -- | Extract macro definitions from preamble that pandoc can understand.
 -- Filters to single-line \newcommand and \DeclareMathOperator definitions.
@@ -448,10 +527,10 @@ _renderTikzToSvg preambleContent tikzEnv = do
     else pure Nothing
 
 -- ---------------------------------------------------------------------------
--- HTML template
+-- HTML fallback template (used when pandoc template is not available)
 -- ---------------------------------------------------------------------------
 
--- | Wrap HTML body content in a full HTML page.
+-- | Wrap HTML body content in a basic HTML page (fallback).
 wrapHtml :: String -> Text -> Text
 wrapHtml title body = T.unlines
   [ "<!DOCTYPE html>"
@@ -460,10 +539,11 @@ wrapHtml title body = T.unlines
   , "  <meta charset=\"utf-8\">"
   , "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
   , "  <title>" <> T.pack title <> " - mwablab</title>"
-  , "  <link rel=\"stylesheet\" href=\"style.css\">"
+  , "  <link rel=\"stylesheet\" href=\"../css/theme.css\">"
+  , "  <link rel=\"stylesheet\" href=\"../css/style.css\">"
   , "</head>"
   , "<body>"
-  , "  <nav><a href=\"index.html\">Index</a></nav>"
+  , "  <nav><a href=\"../index.html\">Index</a></nav>"
   , "  <main>"
   , body
   , "  </main>"
@@ -476,110 +556,78 @@ wrapHtml title body = T.unlines
 -- ---------------------------------------------------------------------------
 
 -- | Generate the index.html page listing all generated pages.
-generateIndex :: FilePath -> [FilePath] -> IO ()
-generateIndex outDir htmlFiles = do
+-- Uses the pandoc template if available for consistent site styling.
+generateIndex :: FilePath -> FilePath -> [FilePath] -> IO ()
+generateIndex templatePath outDir htmlFiles = do
+  hasTemplate <- doesFileExist templatePath
+  hasPandoc <- checkExecutable "pandoc"
   let entries = map mkEntry (sort htmlFiles)
       body = T.unlines
-        [ "<h1>mwablab &mdash; Categorical Foundations</h1>"
-        , "<ul>"
+        [ "# mwablab --- Categorical Foundations"
+        , ""
+        , "Mathematical foundations implemented as code."
+        , ""
+        , "## Foundations"
+        , ""
         , T.unlines entries
-        , "</ul>"
         ]
       mkEntry fp =
         let name = takeBaseName fp
-        in  "  <li><a href=\"" <> T.pack (takeFileName fp)
-            <> "\">" <> T.pack name <> "</a></li>"
-  TIO.writeFile (outDir </> "index.html") (wrapHtml "Index" body)
+        in  "- [" <> T.pack (humanTitle name) <> "](foundations/"
+            <> T.pack (takeFileName fp) <> ")"
+  if hasTemplate && hasPandoc
+    then do
+      (exitCode, stdout, _) <- readProcessWithExitCode "pandoc"
+        [ "--from=markdown"
+        , "--to=html5"
+        , "--mathml"
+        , "--standalone"
+        , "--template=" ++ templatePath
+        , "--variable=title:Index"
+        , "--variable=root:"
+        ]
+        (T.unpack body)
+      case exitCode of
+        ExitSuccess -> TIO.writeFile (outDir </> "index.html") (T.pack stdout)
+        ExitFailure _ -> writeFallbackIndex outDir entries
+    else writeFallbackIndex outDir entries
 
--- ---------------------------------------------------------------------------
--- CSS
--- ---------------------------------------------------------------------------
+-- | Write a basic index.html without the pandoc template.
+writeFallbackIndex :: FilePath -> [Text] -> IO ()
+writeFallbackIndex outDir entries = do
+  let body = T.unlines
+        [ "<h1>mwablab &mdash; Categorical Foundations</h1>"
+        , "<p>Mathematical foundations implemented as code.</p>"
+        , "<h2>Foundations</h2>"
+        , "<ul>"
+        , T.unlines (map entryToHtml entries)
+        , "</ul>"
+        ]
+      entryToHtml entry =
+        -- entries are markdown links like "- [Title](foundations/foo.html)"
+        -- just pass them through as-is for fallback
+        "  <li>" <> entry <> "</li>"
+  TIO.writeFile (outDir </> "index.html") (wrapIndexHtml body)
 
--- | Write the site stylesheet.
-writeCss :: FilePath -> IO ()
-writeCss outDir =
-  TIO.writeFile (outDir </> "style.css") cssContent
-
-cssContent :: Text
-cssContent = T.unlines
-  [ ":root {"
-  , "  --bg: #fafafa;"
-  , "  --fg: #222;"
-  , "  --accent: #2255aa;"
-  , "  --defblue: #e8eeff;"
-  , "  --border: #ddd;"
-  , "  --mono: 'JetBrains Mono', 'Fira Code', monospace;"
-  , "}"
-  , ""
-  , "body {"
-  , "  font-family: 'Computer Modern Serif', 'Latin Modern Roman', Georgia, serif;"
-  , "  max-width: 48em;"
-  , "  margin: 2em auto;"
-  , "  padding: 0 1em;"
-  , "  background: var(--bg);"
-  , "  color: var(--fg);"
-  , "  line-height: 1.6;"
-  , "}"
-  , ""
-  , "nav { margin-bottom: 2em; }"
-  , "nav a { color: var(--accent); }"
-  , ""
-  , "h1, h2, h3 {"
-  , "  color: var(--fg);"
-  , "  border-bottom: 1px solid var(--border);"
-  , "  padding-bottom: 0.3em;"
-  , "}"
-  , ""
-  , ".newmath {"
-  , "  background: var(--defblue);"
-  , "  padding: 1px 3px;"
-  , "  border-radius: 2px;"
-  , "}"
-  , ""
-  , ".tikz-diagram {"
-  , "  margin: 1em 0;"
-  , "  padding: 1em;"
-  , "  border: 1px solid var(--border);"
-  , "  border-radius: 4px;"
-  , "  background: #fff;"
-  , "}"
-  , ""
-  , ".tikz-placeholder {"
-  , "  text-align: center;"
-  , "  color: #666;"
-  , "}"
-  , ""
-  , ".tikz-source {"
-  , "  font-family: var(--mono);"
-  , "  font-size: 0.85em;"
-  , "  overflow-x: auto;"
-  , "}"
-  , ""
-  , "details summary {"
-  , "  cursor: pointer;"
-  , "  color: var(--accent);"
-  , "  font-size: 0.9em;"
-  , "}"
-  , ""
-  , ".back-refs {"
-  , "  font-size: 0.85em;"
-  , "  color: #666;"
-  , "  margin-top: 0.5em;"
-  , "}"
-  , ""
-  , ".tex-fallback pre {"
-  , "  font-family: var(--mono);"
-  , "  font-size: 0.85em;"
-  , "  overflow-x: auto;"
-  , "  background: #f5f5f5;"
-  , "  padding: 1em;"
-  , "  border-radius: 4px;"
-  , "}"
-  , ""
-  , "ul { list-style-type: none; padding-left: 0; }"
-  , "ul li { margin: 0.3em 0; }"
-  , "ul li a { color: var(--accent); text-decoration: none; }"
-  , "ul li a:hover { text-decoration: underline; }"
+-- | Wrap index HTML body in a basic page (fallback).
+wrapIndexHtml :: Text -> Text
+wrapIndexHtml body = T.unlines
+  [ "<!DOCTYPE html>"
+  , "<html lang=\"en\">"
+  , "<head>"
+  , "  <meta charset=\"utf-8\">"
+  , "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+  , "  <title>Index - mwablab</title>"
+  , "  <link rel=\"stylesheet\" href=\"css/theme.css\">"
+  , "  <link rel=\"stylesheet\" href=\"css/style.css\">"
+  , "</head>"
+  , "<body>"
+  , "  <nav><a href=\"index.html\">Index</a></nav>"
+  , "  <main>"
+  , body
+  , "  </main>"
+  , "</body>"
+  , "</html>"
   ]
 
 -- ---------------------------------------------------------------------------

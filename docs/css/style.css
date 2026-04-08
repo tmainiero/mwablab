@@ -160,8 +160,8 @@ blockquote {
   font-size: 0.9rem;
 }
 
-/* MathJax */
-mjx-container { color: var(--fg) !important; }
+/* MathML */
+math { color: var(--fg); }
 
 /* Responsive */
 @media (max-width: 768px) {
