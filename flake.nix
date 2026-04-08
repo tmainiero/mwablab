@@ -117,6 +117,14 @@
               echo "mwablab — Julia dev shell"
             '';
           };
+
+          docs = pkgs.mkShell {
+            name = "mwablab-docs";
+            buildInputs = [ semtex ] ++ docPkgs ++ sharedPkgs;
+            shellHook = ''
+              echo "mwablab — docs dev shell (semtex + pandoc + graphviz)"
+            '';
+          };
         };
 
         # Checks — run via `nix flake check`

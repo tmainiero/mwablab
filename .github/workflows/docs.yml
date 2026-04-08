@@ -6,6 +6,7 @@ on:
     paths:
       - 'docs/**'
       - 'src/spec/**'
+      - 'tools/semtex-hs/**'
       - '.github/workflows/docs.yml'
   workflow_dispatch:
 
@@ -24,47 +25,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install pandoc
-        run: sudo apt-get install -y pandoc
+      - uses: cachix/install-nix-action@v27
+        with:
+          nix_path: nixpkgs=channel:nixpkgs-unstable
 
       - name: Build docs
-        run: |
-          cd docs
-          # Build without semtex (not available in CI) — pandoc-only
-          DOCS_DIR="$(pwd)"
-          SITE_DIR="$DOCS_DIR/site"
-          CONTENT_DIR="$DOCS_DIR/content"
-          TEMPLATE="$DOCS_DIR/templates/default.html"
-          THEME_FILE="$DOCS_DIR/css/themes/catppuccin.css"
-
-          rm -rf "$SITE_DIR"
-          mkdir -p "$SITE_DIR/foundations" "$SITE_DIR/css"
-
-          cp "$DOCS_DIR/css/style.css" "$SITE_DIR/css/"
-          cp "$THEME_FILE" "$SITE_DIR/css/theme.css"
-
-          # Create empty mathjax_config.js (semtex not in CI)
-          touch "$SITE_DIR/mathjax_config.js"
-
-          build_page() {
-            local src="$1" dst="$2" root="${3:-}"
-            pandoc "$src" \
-              --template="$TEMPLATE" \
-              --from=markdown+tex_math_dollars+yaml_metadata_block \
-              --to=html5 \
-              --mathjax \
-              --variable="root:$root" \
-              --standalone \
-              --output="$dst"
-          }
-
-          build_page "$CONTENT_DIR/index.md" "$SITE_DIR/index.html" ""
-          build_page "$CONTENT_DIR/getting-started.md" "$SITE_DIR/getting-started.html" ""
-
-          for f in "$CONTENT_DIR/foundations/"*.md; do
-            name="$(basename "$f" .md)"
-            build_page "$f" "$SITE_DIR/foundations/$name.html" "../"
-          done
+        run: nix develop .#docs --command bash -c "cd docs && bash build.sh"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
