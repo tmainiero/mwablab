@@ -109,6 +109,24 @@ that the braiding is involutive at specific objects.
 
 ---
 
+## Julia
+
+Source: `src/julia/src/SymmetricMonoidal.jl`
+
+GATlab adds the symmetry axiom as a single equation extending the braided monoidal theory.
+
+```julia
+@theory ThSymmetricMonoidalCategory <: ThBraidedMonoidalCategory begin
+    compose(braid(a, b), braid(b, a)) == id(otimes(a, b)) ⊣ [a::Ob, b::Ob]
+end
+```
+
+The theory inherits all braided monoidal structure and adds one axiom: $\sigma_{B,A} \circ \sigma_{A,B} = \id_{A \otimes B}$. This implies $\sigma^{-1}_{A,B} = \sigma_{B,A}$, making `braid_inv` redundant (but retained from the parent theory for uniformity). The theory extension chain `ThCategory <: ThMonoidalCategory <: ThBraidedMonoidalCategory <: ThSymmetricMonoidalCategory` mirrors the mathematical refinement hierarchy. Uses GATlab v0.2.2.
+
+Reference: [nLab, symmetric monoidal category](https://ncatlab.org/nlab/show/symmetric+monoidal+category).
+
+---
+
 ## Laws
 
 Source: `src/haskell/test/Cat/SymmetricMonoidalSpec.hs`

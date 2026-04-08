@@ -137,6 +137,28 @@ Generic functions `braiding-at` and `braiding-inverse-at` retrieve components at
 
 ---
 
+## Julia
+
+Source: `src/julia/src/BraidedMonoidal.jl`
+
+GATlab extends the monoidal theory with braiding operations and the roundtrip axiom.
+
+```julia
+@theory ThBraidedMonoidalCategory <: ThMonoidalCategory begin
+    braid(a::Ob, b::Ob)::Hom(otimes(a, b), otimes(b, a))
+    braid_inv(a::Ob, b::Ob)::Hom(otimes(b, a), otimes(a, b))
+
+    compose(braid(a, b), braid_inv(a, b)) == id(otimes(a, b)) ⊣ [a::Ob, b::Ob]
+    compose(braid_inv(a, b), braid(a, b)) == id(otimes(b, a)) ⊣ [a::Ob, b::Ob]
+end
+```
+
+The theory inherits all monoidal structure via `<: ThMonoidalCategory` and adds the braiding $\sigma_{A,B}$ and its inverse as operations with dependent return types. The braiding roundtrip is an equational axiom. The hexagon axioms are verified in tests due to their nested term complexity. Uses GATlab v0.2.2.
+
+Reference: [nLab, braided monoidal category](https://ncatlab.org/nlab/show/braided+monoidal+category).
+
+---
+
 ## Laws
 
 Source: `src/haskell/test/Cat/BraidedMonoidalSpec.hs`

@@ -144,6 +144,40 @@ Operations `invert-nat-iso`, `compose-nat-iso`, and `identity-nat-iso` mirror th
 
 ---
 
+## Julia
+
+Source: `src/julia/src/NaturalIsomorphism.jl`
+
+GATlab encodes a natural isomorphism by extending the natural transformation theory with an inverse component family and roundtrip axioms.
+
+```julia
+@theory ThNaturalIsomorphism begin
+    # Source/target categories, functors F and G (inlined)
+    # Forward component
+    component(a::ObC)::HomD(fob(a), gob(a))
+    # Naturality of forward component
+    composeD(fhom(f), component(b)) == composeD(component(a), ghom(f)) ⊣
+        [a::ObC, b::ObC, f::HomC(a, b)]
+
+    # Inverse component
+    component_inv(a::ObC)::HomD(gob(a), fob(a))
+
+    # Roundtrip axioms
+    composeD(component(a), component_inv(a)) == idD(fob(a)) ⊣ [a::ObC]
+    composeD(component_inv(a), component(a)) == idD(gob(a)) ⊣ [a::ObC]
+
+    # Naturality of inverse
+    composeD(ghom(f), component_inv(b)) == composeD(component_inv(a), fhom(f)) ⊣
+        [a::ObC, b::ObC, f::HomC(a, b)]
+end
+```
+
+The theory includes forward and backward naturality plus both roundtrip axioms as first-class equations. The inverse naturality axiom is stated explicitly for clarity, although it follows from forward naturality and the roundtrips. Uses GATlab v0.2.2.
+
+Reference: [nLab, natural isomorphism](https://ncatlab.org/nlab/show/natural+isomorphism).
+
+---
+
 ## Laws
 
 Source: `src/haskell/test/Cat/NaturalIsomorphismSpec.hs`

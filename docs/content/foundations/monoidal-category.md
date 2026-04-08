@@ -177,6 +177,38 @@ Generic functions `tensor-objects`, `tensor-morphisms`, `associator-at`,
 
 ---
 
+## Julia
+
+Source: `src/julia/src/Monoidal.jl`
+
+GATlab expresses monoidal categories as a theory extending `ThCategory` with tensor product, unit, and coherence isomorphisms.
+
+```julia
+@theory ThMonoidalCategory <: ThCategory begin
+    otimes(a::Ob, b::Ob)::Ob
+    otimes(f::Hom(a, b), g::Hom(c, d))::Hom(otimes(a, c), otimes(b, d)) ⊣
+        [a::Ob, b::Ob, c::Ob, d::Ob]
+
+    munit()::Ob
+
+    associator(a::Ob, b::Ob, c::Ob)::Hom(otimes(otimes(a, b), c), otimes(a, otimes(b, c)))
+    associator_inv(a::Ob, b::Ob, c::Ob)::Hom(otimes(a, otimes(b, c)), otimes(otimes(a, b), c))
+    left_unitor(a::Ob)::Hom(otimes(munit(), a), a)
+    left_unitor_inv(a::Ob)::Hom(a, otimes(munit(), a))
+    right_unitor(a::Ob)::Hom(otimes(a, munit()), a)
+    right_unitor_inv(a::Ob)::Hom(a, otimes(a, munit()))
+
+    # Roundtrip, bifunctoriality axioms as equations
+    # Pentagon and triangle verified in tests (term depth may exceed parser)
+end
+```
+
+The `<:` syntax declares theory extension, inheriting all of `ThCategory`. The overloaded `otimes` on both `Ob` and `Hom` sorts encodes the tensor bifunctor directly. Roundtrip axioms for all three isomorphisms and bifunctoriality of the tensor are stated as equational axioms. The pentagon and triangle coherence axioms are verified in tests rather than inline, as their nested term depth may exceed GATlab's equation parser. Uses GATlab v0.2.2.
+
+Reference: [nLab, monoidal category](https://ncatlab.org/nlab/show/monoidal+category).
+
+---
+
 ## Laws
 
 Source: `src/haskell/test/Cat/MonoidalSpec.hs`

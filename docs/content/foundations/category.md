@@ -120,6 +120,33 @@ The `compose` slot stores a function `(g f) → g ∘ f` in traditional order. T
 
 ---
 
+## Julia
+
+Source: `src/julia/src/Category.jl`
+
+GATlab's `@theory` macro expresses categories as a generalized algebraic theory with equational axioms as first-class data, not just documentation.
+
+```julia
+@theory ThCategory begin
+    Ob::TYPE
+    Hom(dom::Ob, codom::Ob)::TYPE
+
+    id(a::Ob)::Hom(a, a)
+    compose(f::Hom(a, b), g::Hom(b, c))::Hom(a, c) ⊣ [a::Ob, b::Ob, c::Ob]
+
+    compose(f, id(b)) == f ⊣ [a::Ob, b::Ob, f::Hom(a, b)]
+    compose(id(a), f) == f ⊣ [a::Ob, b::Ob, f::Hom(a, b)]
+    compose(compose(f, g), h) == compose(f, compose(g, h)) ⊣
+        [a::Ob, b::Ob, c::Ob, d::Ob, f::Hom(a, b), g::Hom(b, c), h::Hom(c, d)]
+end
+```
+
+The theory declares two sorts (`Ob`, `Hom`), two operations (`id`, `compose`), and three equational axioms (right unit, left unit, associativity). GATlab uses diagrammatic (left-to-right) composition order: `compose(f, g)` means "f then g", which is $g \circ f$ in conventional notation. Concrete categories are provided via `@instance`, which supplies implementations for each operation. This track defines its own `ThCategory` rather than reusing GATlab's stdlib version, keeping the theory hierarchy self-contained. Uses GATlab v0.2.2.
+
+Reference: [Stacks Project 0014](https://stacks.math.columbia.edu/tag/0014); [nLab, category](https://ncatlab.org/nlab/show/category).
+
+---
+
 ## Examples
 
 ### Hask: `(->)`

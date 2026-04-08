@@ -146,6 +146,25 @@ and `pairing-functor` constructs the universal pairing $\langle \Functor{F}, \Fu
 
 ---
 
+## Julia
+
+Source: `src/julia/src/Product.jl`
+
+Product morphisms are represented as a parametric struct pairing component morphisms.
+
+```julia
+struct ProdHom{F,G}
+    fst::F
+    snd::G
+end
+```
+
+The struct is generic over the component morphism types `F` and `G`, with Julia's type inference providing automatic construction via `ProdHom(f, g)`. A full GATlab `@instance` for the product category (parameterized over two inner models) is sketched in the source but deferred until concrete use cases arise, since GATlab requires concrete type parameters for the sort types. Uses GATlab v0.2.2.
+
+Reference: [nLab, product category](https://ncatlab.org/nlab/show/product+category).
+
+---
+
 ## Laws
 
 Source: `src/haskell/test/Cat/ProductSpec.hs`

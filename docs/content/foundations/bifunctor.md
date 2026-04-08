@@ -132,6 +132,28 @@ provide the full and partial application interfaces.
 
 ---
 
+## Julia
+
+Source: `src/julia/src/Bifunctor.jl`
+
+A standalone data struct for bifunctors, used outside the `@theory` hierarchy (where `otimes` on morphisms in `ThMonoidalCategory` serves as the bifunctor action).
+
+```julia
+struct BifunctorData
+    bimap::Function  # (f, g) -> tensor(f, g)
+end
+
+bimap_data(bf::BifunctorData, f, g) = bf.bimap(f, g)
+first_data(bf::BifunctorData, f) = bimap_data(bf, f, identity)
+second_data(bf::BifunctorData, g) = bimap_data(bf, identity, g)
+```
+
+`BifunctorData` reifies the bimap action as a first-class value. The partial application helpers `first_data` and `second_data` correspond to the partial functors $F(-, Y)$ and $F(X, -)$ respectively. In the GATlab theory hierarchy, `otimes(f, g)` on `Hom` sorts in `ThMonoidalCategory` serves as the bifunctor action directly. Uses GATlab v0.2.2.
+
+Reference: [nLab, bifunctor](https://ncatlab.org/nlab/show/bifunctor).
+
+---
+
 ## Laws
 
 Source: `src/haskell/test/Cat/BifunctorSpec.hs`

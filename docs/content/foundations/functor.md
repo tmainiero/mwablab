@@ -127,6 +127,45 @@ which is the natural hook for building the representable functors $\Hom(\Categor
 
 ---
 
+## Julia
+
+Source: `src/julia/src/Functor.jl`
+
+GATlab encodes a functor as a single multi-sorted algebraic theory with sorts for two categories and operations mapping between them. A functor is not "inter-model" -- it is one theory with all the data.
+
+```julia
+@theory ThFunctor begin
+    # Source category C
+    ObC::TYPE
+    HomC(dom::ObC, codom::ObC)::TYPE
+    idC(a::ObC)::HomC(a, a)
+    composeC(f::HomC(a, b), g::HomC(b, c))::HomC(a, c) ⊣ [a::ObC, b::ObC, c::ObC]
+    # ... source category laws ...
+
+    # Target category D
+    ObD::TYPE
+    HomD(dom::ObD, codom::ObD)::TYPE
+    idD(a::ObD)::HomD(a, a)
+    composeD(f::HomD(a, b), g::HomD(b, c))::HomD(a, c) ⊣ [a::ObD, b::ObD, c::ObD]
+    # ... target category laws ...
+
+    # Functor maps
+    fob(a::ObC)::ObD
+    fhom(f::HomC(a, b))::HomD(fob(a), fob(b)) ⊣ [a::ObC, b::ObC]
+
+    # Functor laws
+    fhom(idC(a)) == idD(fob(a)) ⊣ [a::ObC]
+    fhom(composeC(f, g)) == composeD(fhom(f), fhom(g)) ⊣
+        [a::ObC, b::ObC, c::ObC, f::HomC(a, b), g::HomC(b, c)]
+end
+```
+
+GATlab's multi-sorted dependent types let the return type of `fhom` depend on `fob` -- the type `HomD(fob(a), fob(b))` expresses functoriality directly in the sort system. The theory inlines both category axioms and the two functor laws (identity preservation, composition preservation). This is something unique to the GATlab track: the functor axioms live as equational data in the theory, not just as docstring comments or runtime checks. Uses GATlab v0.2.2.
+
+Reference: [Stacks Project 001B](https://stacks.math.columbia.edu/tag/001B); [nLab, functor](https://ncatlab.org/nlab/show/functor).
+
+---
+
 ## Examples
 
 ### Maybe as an endofunctor on Hask

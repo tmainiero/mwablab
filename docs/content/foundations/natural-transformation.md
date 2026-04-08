@@ -142,6 +142,33 @@ and a Lisp function `(lambda (x) ...)` encoding the component assignment $X \map
                                     (component-at alpha x)))))
 ```
 
+## Julia
+
+Source: `src/julia/src/NaturalTransformation.jl`
+
+GATlab encodes a natural transformation as a multi-sorted theory extending the two-functor setup with a component family and the naturality axiom.
+
+```julia
+@theory ThNaturalTransformation begin
+    # Source category C, target category D (sorts + laws inlined)
+    # Functor F: fob, fhom (with preservation laws)
+    # Functor G: gob, ghom (with preservation laws)
+
+    # Natural transformation component
+    component(a::ObC)::HomD(fob(a), gob(a))
+
+    # Naturality condition (diagrammatic order):
+    composeD(fhom(f), component(b)) == composeD(component(a), ghom(f)) ⊣
+        [a::ObC, b::ObC, f::HomC(a, b)]
+end
+```
+
+The full theory inlines the source/target category axioms and both functors' preservation laws. The component sort `HomD(fob(a), gob(a))` uses dependent typing to express that $\eta_a$ is a morphism from $F(a)$ to $G(a)$. The naturality condition is a first-class equational axiom, not a runtime check. Uses GATlab v0.2.2.
+
+Reference: [Stacks Project 001I](https://stacks.math.columbia.edu/tag/001I); [nLab, natural transformation](https://ncatlab.org/nlab/show/natural+transformation).
+
+---
+
 ## Vertical composition
 
 Given $\NatTrans{\alpha} \colon \Functor{F} \Rightarrow \Functor{G}$
