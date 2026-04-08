@@ -1,0 +1,104 @@
+\documentclass[../preamble]{subfiles}
+\begin{document}
+
+\section{Natural Isomorphisms}
+\label{sec:natural-isomorphism}
+\concept{natural-isomorphism}{Natural Isomorphism}
+\depends{natural-transformation}
+\implements{haskell}{Cat.NaturalIsomorphism}
+\implements{agda}{Cat.NaturalIsomorphism}
+\implements{lisp}{natural-isomorphism}
+
+Let $\Category{C}$ and $\Category{D}$ be categories,
+and let $\Functor{F}, \Functor{G} \colon \Category{C} \lto \Category{D}$ be functors.
+A \newterm{natural isomorphism}
+$\newmath{\NatTrans{\alpha} \colon \Functor{F} \xRightarrow{\sim} \Functor{G}}$
+is a natural transformation $\NatTrans{\alpha} \colon \Functor{F} \Rightarrow \Functor{G}$
+such that for every object $X \in \Ob(\Category{C})$,
+the component $\NatTrans{\alpha}_X \colon \Functor{F}(X) \lto \Functor{G}(X)$
+is an isomorphism in $\Category{D}$
+(\nlabref{natural+isomorphism}).
+
+\begin{definition}[Natural isomorphism, componentwise]
+  \label{def:nat-iso-componentwise}
+  Equivalently,
+  a natural isomorphism $\Functor{F} \cong \Functor{G}$
+  consists of a pair of natural transformations
+  $\newmath{\NatTrans{\alpha} \colon \Functor{F} \Rightarrow \Functor{G}}$
+  and
+  $\newmath{\NatTrans{\alpha}^{-1} \colon \Functor{G} \Rightarrow \Functor{F}}$
+  such that their vertical composites
+  (Definition~\ref{def:vertical-composition})
+  satisfy
+  \begin{equation}
+    \label{eq:nat-iso-left}
+    \NatTrans{\alpha}^{-1} \circ \NatTrans{\alpha} = \id_{\Functor{F}},
+  \end{equation}
+  \begin{equation}
+    \label{eq:nat-iso-right}
+    \NatTrans{\alpha} \circ \NatTrans{\alpha}^{-1} = \id_{\Functor{G}}.
+  \end{equation}
+  At each component,
+  these equations assert that $\NatTrans{\alpha}_X$ and $\NatTrans{\alpha}^{-1}_X$
+  are mutually inverse morphisms in $\Category{D}$.
+\end{definition}
+
+The commutativity of the following diagram expresses
+that $\NatTrans{\alpha}$ and $\NatTrans{\alpha}^{-1}$
+are mutually inverse at each component:
+\begin{equation}
+  \label{eq:nat-iso-roundtrip}
+  \begin{tikzcd}
+    \Functor{F}(X) \arrow[r, "\NatTrans{\alpha}_X", shift left]
+      & \Functor{G}(X) \arrow[l, "\NatTrans{\alpha}^{-1}_X", shift left]
+  \end{tikzcd}
+\end{equation}
+
+\begin{definition}[Identity natural isomorphism]
+  \label{def:id-nat-iso}
+  The \newterm{identity natural isomorphism}
+  $\newmath{\id_{\Functor{F}} \colon \Functor{F} \xRightarrow{\sim} \Functor{F}}$
+  has forward and backward components both equal to the identity:
+  $(\id_{\Functor{F}})_X = \id_{\Functor{F}(X)}$
+  and $(\id_{\Functor{F}})^{-1}_X = \id_{\Functor{F}(X)}$.
+  Equations~\eqref{eq:nat-iso-left} and~\eqref{eq:nat-iso-right}
+  hold by the unit law.
+\end{definition}
+
+\begin{definition}[Composition of natural isomorphisms]
+  \label{def:compose-nat-iso}
+  Given natural isomorphisms
+  $\NatTrans{\alpha} \colon \Functor{F} \xRightarrow{\sim} \Functor{G}$
+  and
+  $\NatTrans{\beta} \colon \Functor{G} \xRightarrow{\sim} \Functor{H}$,
+  their \newterm{composite natural isomorphism}
+  $\newmath{\NatTrans{\beta} \circ \NatTrans{\alpha}
+    \colon \Functor{F} \xRightarrow{\sim} \Functor{H}}$
+  has forward components
+  $(\NatTrans{\beta} \circ \NatTrans{\alpha})_X
+    = \NatTrans{\beta}_X \circ \NatTrans{\alpha}_X$
+  and backward components
+  $(\NatTrans{\beta} \circ \NatTrans{\alpha})^{-1}_X
+    = \NatTrans{\alpha}^{-1}_X \circ \NatTrans{\beta}^{-1}_X$.
+\end{definition}
+
+\begin{definition}[Inverse of a natural isomorphism]
+  \label{def:invert-nat-iso}
+  Given a natural isomorphism
+  $\NatTrans{\alpha} \colon \Functor{F} \xRightarrow{\sim} \Functor{G}$,
+  its \newterm{inverse natural isomorphism}
+  $\newmath{\NatTrans{\alpha}^{-1}
+    \colon \Functor{G} \xRightarrow{\sim} \Functor{F}}$
+  is obtained by swapping forward and backward components.
+\end{definition}
+
+\begin{remark}
+  Natural isomorphisms are the isomorphisms in the functor category
+  $[\Category{C}, \Category{D}]$.
+  Two functors are \newterm{naturally isomorphic},
+  written $\Functor{F} \cong \Functor{G}$,
+  when there exists a natural isomorphism between them.
+  This is the correct notion of ``sameness'' for functors.
+\end{remark}
+
+\end{document}
