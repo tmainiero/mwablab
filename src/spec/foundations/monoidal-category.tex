@@ -1,0 +1,188 @@
+\documentclass[../preamble]{subfiles}
+\begin{document}
+
+\section{Monoidal Categories}
+\label{sec:monoidal-category}
+\concept{monoidal-category}{Monoidal Category}
+\depends{natural-isomorphism}
+\depends{bifunctor}
+\implements{haskell}{Cat.Monoidal}
+\implements{agda}{Cat.Monoidal}
+\implements{lisp}{monoidal-category}
+
+A \newterm{monoidal category} equips a category with a notion of ``multiplication''
+of objects and morphisms,
+coherently associative and unital up to natural isomorphism
+(\nlabref{monoidal+category};
+Mac Lane, \emph{Categories for the Working Mathematician}, Chapter VII).
+
+\begin{definition}[Monoidal category]
+  \label{def:monoidal-category}
+  A \newterm{monoidal category}
+  $\newmath{(\Category{C}, \otimes, I, \alpha, \lambda, \rho)}$
+  consists of the following data:
+  \begin{enumerate}
+    \item A category $\Category{C}$.
+
+    \item A \newterm{tensor product} bifunctor
+      (Definition~\ref{def:bifunctor})
+      \begin{equation}
+        \label{eq:tensor-product}
+        \newmath{\otimes \colon \Category{C} \times \Category{C} \lto \Category{C}}.
+      \end{equation}
+      We write $\newmath{A \otimes B}$ for $\otimes(A, B)$
+      on objects,
+      and $\newmath{f \otimes g}$ for $\operatorname{bimap}(f, g)$
+      on morphisms.
+
+    \item A \newterm{unit object}
+      $\newmath{I \in \Ob(\Category{C})}$.
+
+    \item An \newterm{associator},
+      a natural isomorphism
+      (Definition~\ref{def:nat-iso-componentwise})
+      with components
+      \begin{equation}
+        \label{eq:associator}
+        \newmath{\alpha_{A,B,C}
+          \colon (A \otimes B) \otimes C
+          \xrightarrow{\;\sim\;} A \otimes (B \otimes C)}
+      \end{equation}
+      natural in $A$, $B$, and $C$.
+
+    \item A \newterm{left unitor},
+      a natural isomorphism with components
+      \begin{equation}
+        \label{eq:left-unitor}
+        \newmath{\lambda_A \colon I \otimes A \xrightarrow{\;\sim\;} A}
+      \end{equation}
+      natural in $A$.
+
+    \item A \newterm{right unitor},
+      a natural isomorphism with components
+      \begin{equation}
+        \label{eq:right-unitor}
+        \newmath{\rho_A \colon A \otimes I \xrightarrow{\;\sim\;} A}
+      \end{equation}
+      natural in $A$.
+  \end{enumerate}
+
+  These data are subject to the pentagon axiom
+  (Definition~\ref{def:pentagon})
+  and the triangle axiom
+  (Definition~\ref{def:triangle}).
+\end{definition}
+
+\subsection{Coherence Axioms}
+
+\begin{definition}[Pentagon axiom]
+  \label{def:pentagon}
+  \axiom{monoidal-category}{pentagon}
+  The \newterm{pentagon axiom} requires that
+  for all objects $A, B, C, D \in \Ob(\Category{C})$,
+  the following diagram commutes:
+  \begin{equation}
+    \label{eq:pentagon}
+    \begin{tikzcd}[column sep=small]
+      & ((A \otimes B) \otimes C) \otimes D
+        \arrow[dl, "\alpha_{A,B,C} \otimes \id_D"']
+        \arrow[dr, "\alpha_{A \otimes B, C, D}"]
+      & \\
+      (A \otimes (B \otimes C)) \otimes D
+        \arrow[d, "\alpha_{A, B \otimes C, D}"']
+      & &
+      (A \otimes B) \otimes (C \otimes D)
+        \arrow[d, "\alpha_{A, B, C \otimes D}"]
+      \\
+      A \otimes ((B \otimes C) \otimes D)
+        \arrow[rr, "\id_A \otimes \alpha_{B,C,D}"']
+      & &
+      A \otimes (B \otimes (C \otimes D))
+    \end{tikzcd}
+  \end{equation}
+  That is,
+  the two composite paths from
+  $((A \otimes B) \otimes C) \otimes D$
+  to
+  $A \otimes (B \otimes (C \otimes D))$
+  are equal.
+\end{definition}
+
+\begin{definition}[Triangle axiom]
+  \label{def:triangle}
+  \axiom{monoidal-category}{triangle}
+  The \newterm{triangle axiom} requires that
+  for all objects $A, B \in \Ob(\Category{C})$,
+  the following diagram commutes:
+  \begin{equation}
+    \label{eq:triangle}
+    \begin{tikzcd}
+      (A \otimes I) \otimes B
+        \arrow[rr, "\alpha_{A,I,B}"]
+        \arrow[dr, "\rho_A \otimes \id_B"']
+      & &
+      A \otimes (I \otimes B)
+        \arrow[dl, "\id_A \otimes \lambda_B"]
+      \\
+      & A \otimes B &
+    \end{tikzcd}
+  \end{equation}
+  That is,
+  $(\id_A \otimes \lambda_B) \circ \alpha_{A,I,B}
+    = \rho_A \otimes \id_B$.
+\end{definition}
+
+\subsection{Remarks}
+
+\begin{remark}[Coherence]
+  \label{rem:coherence}
+  Mac Lane's \newterm{coherence theorem} for monoidal categories states that
+  every diagram whose edges are built from
+  $\alpha$, $\lambda$, $\rho$, their inverses,
+  identities, and tensor products of these
+  commutes.
+  In particular,
+  the pentagon and triangle axioms suffice to ensure coherence
+  of all re-bracketing and unit-insertion paths.
+  See Mac Lane, \emph{CWM} VII.2.
+\end{remark}
+
+\begin{remark}[Strictness]
+  \label{rem:strictness}
+  This definition is \emph{not} that of a strict monoidal category.
+  The associator and unitors are natural isomorphisms,
+  not identities.
+  A \newterm{strict monoidal category} is one where
+  $\alpha$, $\lambda$, and $\rho$ are all identity natural transformations,
+  so that $(A \otimes B) \otimes C = A \otimes (B \otimes C)$
+  and $I \otimes A = A = A \otimes I$ on the nose.
+  By Mac Lane's coherence theorem,
+  every monoidal category is monoidally equivalent to a strict one.
+\end{remark}
+
+\begin{remark}[Naturality spelled out]
+  \label{rem:naturality}
+  The naturality of $\alpha$ means that
+  for all morphisms
+  $f \colon A \lto A'$,
+  $g \colon B \lto B'$,
+  $h \colon C \lto C'$,
+  the following square commutes:
+  \begin{equation}
+    \label{eq:associator-naturality}
+    \begin{tikzcd}
+      (A \otimes B) \otimes C
+        \arrow[r, "\alpha_{A,B,C}"]
+        \arrow[d, "(f \otimes g) \otimes h"']
+      & A \otimes (B \otimes C)
+        \arrow[d, "f \otimes (g \otimes h)"]
+      \\
+      (A' \otimes B') \otimes C'
+        \arrow[r, "\alpha_{A',B',C'}"']
+      & A' \otimes (B' \otimes C')
+    \end{tikzcd}
+  \end{equation}
+  Analogous naturality squares hold for $\lambda$ and $\rho$.
+\end{remark}
+
+\end{document}
